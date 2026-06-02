@@ -7,6 +7,7 @@ export default function CheckoutPage() {
   const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, saveCustomer } = useStore();
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
+  const [confirmedTotal, setConfirmedTotal] = useState(0);
   const [form, setForm] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
     saveCustomer({
       name: form.name,
       phone: form.phone,
+      email: form.email || currentUser?.email,
       address: form.address,
       city: form.city,
       notes: form.notes,
@@ -52,6 +54,7 @@ export default function CheckoutPage() {
       createdAt: new Date().toISOString().split('T')[0],
     });
     setOrderId(id);
+    setConfirmedTotal(total);
     clearCart();
     setStep('success');
     showNotification('تم تقديم طلبك بنجاح! 🎉');
@@ -78,7 +81,7 @@ export default function CheckoutPage() {
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <p className="text-sm text-gray-500 font-cairo">رقم الطلب</p>
             <p className="font-black text-gray-900 font-cairo text-lg">{orderId}</p>
-            <p className="text-sm font-bold text-pink-600 font-cairo mt-1">الإجمالي: {total.toLocaleString()} جنيه</p>
+            <p className="text-sm font-bold text-pink-600 font-cairo mt-1">الإجمالي: {confirmedTotal.toLocaleString()} جنيه</p>
             <p className="text-xs text-gray-500 font-cairo mt-1">طريقة الدفع: {form.paymentMethod === 'cash' ? 'الدفع عند الاستلام' : form.paymentMethod === 'instapay' ? 'InstaPay' : 'فودافون كاش'}</p>
           </div>
           <div className="flex gap-3">

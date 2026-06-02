@@ -12,6 +12,29 @@ type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'se
 const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const;
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 
+const COLOR_NAMES: Record<string, string> = {
+  '#ffffff': 'أبيض',
+  '#000000': 'أسود',
+  '#1a1a2e': 'كحلي',
+  '#4a90d9': 'أزرق',
+  '#c0392b': 'أحمر',
+  '#2c3e50': 'نيلي',
+  '#8e44ad': 'بنفسجي',
+  '#27ae60': 'أخضر',
+  '#2980b9': 'أزرق سماوي',
+  '#e74c3c': 'أحمر',
+  '#1a5276': 'أزرق غامق',
+  '#7f8c8d': 'رمادي',
+  '#3498db': 'أزرق',
+  '#2ecc71': 'أخضر',
+  '#8B4513': 'بني',
+  '#1a1a1a': 'أسود',
+  '#c0c0c0': 'فضي',
+  '#f43f5e': 'وردي',
+  '#a855f7': 'بنفسجي',
+  '#f97316': 'برتقالي',
+};
+
 const STATUS_LABELS: Record<Order['status'], string> = {
   pending: 'في الانتظار',
   processing: 'جاري التجهيز',
@@ -431,71 +454,98 @@ export default function AdminPage() {
         {/* Users */}
         {adminSection === 'users' && (
           <div className="space-y-5">
-            <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة العملاء</h1>
-            <div className="grid gap-4">
-              {/* Registered Users */}
-              <h2 className="font-black text-gray-700 font-cairo mb-4 text-sm border-b border-gray-100 pb-2">المستخدمين المسجلين</h2>
-              {users.map(user => (
-                <div key={user.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-black text-lg">
-                      {user.name[0]}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-gray-900 font-cairo">{user.name}</p>
-                        {user.role === 'admin' && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-cairo font-bold">مدير</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-400 font-cairo">{user.email}</p>
-                      <p className="text-xs text-gray-400 font-cairo">انضم: {user.createdAt}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 text-center">
-                    <div className="bg-gray-50 rounded-xl px-4 py-2">
-                      <p className="font-black text-gray-900 font-cairo">{orders.filter(o => o.userId === user.id).length}</p>
-                      <p className="text-xs text-gray-400 font-cairo">طلب</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl px-4 py-2">
-                      <p className="font-black text-gray-900 font-cairo">
-                        {orders.filter(o => o.userId === user.id && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج
-                      </p>
-                      <p className="text-xs text-gray-400 font-cairo">إجمالي الشراء</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {/* Guest Customers */}
-              {customers.length > 0 && (
-                <>
-                  <h2 className="font-black text-gray-700 font-cairo mb-4 mt-6 text-sm border-b border-gray-100 pb-2">عملاء بدون حساب</h2>
-                  {customers.map((c, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between flex-wrap gap-3">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-lg">
-                          {c.name[0]}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 font-cairo">{c.name}</p>
-                          <p className="text-sm text-gray-400 font-cairo">📞 {c.phone}</p>
-                          <p className="text-xs text-gray-400 font-cairo">📍 {c.address}، {c.city}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-4 text-center">
-                        <div className="bg-gray-50 rounded-xl px-4 py-2">
-                          <p className="font-black text-gray-900 font-cairo">{c.orders.length}</p>
-                          <p className="text-xs text-gray-400 font-cairo">طلب</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl px-4 py-2">
-                          <p className="font-black text-gray-900 font-cairo">{c.createdAt}</p>
-                          <p className="text-xs text-gray-400 font-cairo">أول طلب</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة العملاء</h1>
+              <button
+                onClick={() => {
+                  const allCustomers = [
+                    ...users.filter(u => u.role === 'customer').map(u => ({
+                      name: u.name,
+                      phone: '',
+                      email: u.email,
+                      address: '',
+                      city: '',
+                      ordersCount: orders.filter(o => o.userId === u.id).length,
+                      totalSpent: orders.filter(o => o.userId === u.id && o.status === 'delivered').reduce((a, o) => a + o.total, 0),
+                      createdAt: u.createdAt,
+                    })),
+                    ...customers.map(c => ({
+                      name: c.name,
+                      phone: c.phone,
+                      email: c.email || '',
+                      address: c.address,
+                      city: c.city,
+                      ordersCount: c.orders.length,
+                      totalSpent: orders.filter(o => c.orders.includes(o.id) && o.status === 'delivered').reduce((a, o) => a + o.total, 0),
+                      createdAt: c.createdAt,
+                    })),
+                  ];
+                  const BOM = '\uFEFF';
+                  const headers = ['الاسم', 'رقم الموبايل', 'البريد الإلكتروني', 'العنوان', 'المدينة', 'عدد الطلبات', 'إجمالي المشتريات', 'تاريخ التسجيل'];
+                  const rows = allCustomers.map(c => [
+                    c.name, c.phone, c.email, c.address, c.city,
+                    c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
+                  ]);
+                  const csv = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  showNotification('تم تصدير بيانات العملاء ✓');
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                تصدير Excel
+              </button>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      {['الاسم', 'رقم الموبايل', 'البريد', 'العنوان', 'المدينة', 'الطلبات', 'المشتريات', 'تاريخ التسجيل'].map(h => (
+                        <th key={h} className="text-right px-4 py-3 text-xs font-bold text-gray-500 font-cairo whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {users.filter(u => u.role === 'customer').map(u => (
+                      <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-black text-xs">{u.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{u.name}</span></div></td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">—</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{u.email}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">—</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">—</td>
+                        <td className="px-4 py-3"><span className="text-xs font-bold font-cairo bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{orders.filter(o => o.userId === u.id).length}</span></td>
+                        <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => o.userId === u.id && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
+                        <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{u.createdAt}</td>
+                      </tr>
+                    ))}
+                    {customers.map((c, i) => (
+                      <tr key={`guest-${i}`} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-xs">{c.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{c.name}</span></div></td>
+                        <td className="px-4 py-3 text-sm font-bold text-gray-700 font-cairo" dir="ltr">{c.phone}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{c.email || '—'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{c.address || '—'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{c.city || '—'}</td>
+                        <td className="px-4 py-3"><span className="text-xs font-bold font-cairo bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{c.orders.length}</span></td>
+                        <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => c.orders.includes(o.id) && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
+                        <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{c.createdAt}</td>
+                      </tr>
+                    ))}
+                    {users.filter(u => u.role === 'customer').length === 0 && customers.length === 0 && (
+                      <tr><td colSpan={8} className="text-center text-gray-400 font-cairo py-10">لا يوجد عملاء حتى الآن</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-4 border-t border-gray-50 text-xs text-gray-400 font-cairo text-center">
+                إجمالي العملاء: {users.filter(u => u.role === 'customer').length + customers.length}
+              </div>
             </div>
           </div>
         )}
@@ -1106,7 +1156,7 @@ export default function AdminPage() {
                       {productForm.colors.map((c, idx) => (
                         <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
                           <span className="w-5 h-5 rounded-full border border-gray-300" style={{ backgroundColor: c }} />
-                          <span className="text-xs font-cairo text-gray-600 ml-1">{c}</span>
+                          <span className="text-xs font-cairo text-gray-600 ml-1">{COLOR_NAMES[c] || c}</span>
                           <button type="button" onClick={() => setProductForm(f => ({ ...f, colors: f.colors.filter((_, i) => i !== idx) }))}
                             className="text-red-400 hover:text-red-600 transition-all">
                             <X className="w-3.5 h-3.5" />

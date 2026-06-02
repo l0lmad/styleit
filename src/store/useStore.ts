@@ -102,6 +102,7 @@ export interface Customer {
   address: string;
   city: string;
   notes: string;
+  email?: string;
   orders: string[];
   createdAt: string;
 }
@@ -501,9 +502,12 @@ export const useStore = create<StoreState>()(
       },
 
       placeOrder: (order) => {
-        const id = `ORD-${Date.now()}`;
+        const id = `${get().orders.length + 1}`;
+        const itemsTotal = order.items.reduce((a, i) => a + i.product.price * i.quantity, 0);
+        const shipping = itemsTotal >= 500 ? 0 : 50;
         const newOrder: Order = {
           ...order,
+          total: itemsTotal + shipping,
           id,
           createdAt: new Date().toISOString().split('T')[0],
         };
@@ -514,9 +518,17 @@ export const useStore = create<StoreState>()(
                 u.id === order.userId ? { ...u, orders: [...u.orders, id] } : u
               )
             : state.users;
+          const updatedProducts = state.products.map(p => {
+            const orderedItem = order.items.find(i => i.product.id === p.id);
+            if (orderedItem) {
+              return { ...p, stock: Math.max(0, p.stock - orderedItem.quantity) };
+            }
+            return p;
+          });
           return {
             orders: [...state.orders, newOrder],
             users: updatedUsers,
+            products: updatedProducts,
             currentUser:
               state.currentUser?.id === order.userId
                 ? { ...state.currentUser, orders: [...(state.currentUser.orders || []), id] }
