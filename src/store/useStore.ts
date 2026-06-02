@@ -96,6 +96,7 @@ export interface SiteSettings {
   saleBannerColor: string;
   instapayAccount: string;
   vodafoneAccount: string;
+  whatsappNumber: string;
 }
 
 export interface Customer {
@@ -403,6 +404,7 @@ export const useStore = create<StoreState>()(
         saleBannerColor: '#f97316',
         instapayAccount: 'instapay@warawear.com',
         vodafoneAccount: '01000000000',
+        whatsappNumber: '01000000000',
       },
 
       login: (email, password) => {

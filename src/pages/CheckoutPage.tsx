@@ -253,14 +253,26 @@ export default function CheckoutPage() {
                   <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
                     <p className="text-sm font-bold text-purple-700 font-cairo mb-1">حساب InstaPay للتحويل</p>
                     <p className="text-lg font-black text-purple-900 font-cairo text-center" dir="ltr">{siteSettings.instapayAccount}</p>
-                    <p className="text-xs text-purple-500 font-cairo mt-1 text-center">حول المبلغ على الحساب أعلاه ثم أكمل الطلب</p>
+                    <p className="text-xs text-purple-500 font-cairo mt-1 text-center">حول المبلغ على الحساب أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
+                    {siteSettings.whatsappNumber && (
+                      <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر InstaPay`)}`} target="_blank" rel="noopener noreferrer"
+                        className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all">
+                        💬 أرسل إثبات الدفع عبر واتساب
+                      </a>
+                    )}
                   </div>
                 )}
                 {form.paymentMethod === 'vodafone' && siteSettings.vodafoneAccount && (
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
                     <p className="text-sm font-bold text-red-700 font-cairo mb-1">رقم فودافون كاش للتحويل</p>
                     <p className="text-lg font-black text-red-900 font-cairo text-center" dir="ltr">{siteSettings.vodafoneAccount}</p>
-                    <p className="text-xs text-red-500 font-cairo mt-1 text-center">حول المبلغ على الرقم أعلاه ثم أكمل الطلب</p>
+                    <p className="text-xs text-red-500 font-cairo mt-1 text-center">حول المبلغ على الرقم أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
+                    {siteSettings.whatsappNumber && (
+                      <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر فودافون كاش`)}`} target="_blank" rel="noopener noreferrer"
+                        className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all">
+                        💬 أرسل إثبات الدفع عبر واتساب
+                      </a>
+                    )}
                   </div>
                 )}
                 <div className="flex gap-3">
