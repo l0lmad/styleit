@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
-  BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings
+  BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone
 } from 'lucide-react';
 import { useStore, Product, Order } from '../store/useStore';
 
@@ -1011,6 +1011,27 @@ export default function AdminPage() {
                     <input value={siteSettings.saleBannerColor || '#f97316'} onChange={e => updateSiteSettings({ saleBannerColor: e.target.value })}
                       className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Accounts */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-pink-500" /> حسابات الدفع الإلكتروني
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">حساب InstaPay</label>
+                  <input value={siteSettings.instapayAccount || ''} onChange={e => updateSiteSettings({ instapayAccount: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">الإيميل أو رقم الموبايل المرتبط بـ InstaPay</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">رقم فودافون كاش</label>
+                  <input value={siteSettings.vodafoneAccount || ''} onChange={e => updateSiteSettings({ vodafoneAccount: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">رقم الموبايل الخاص بـ فودافون كاش</p>
                 </div>
               </div>
             </div>

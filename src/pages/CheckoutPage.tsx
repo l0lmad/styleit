@@ -4,7 +4,7 @@ import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-re
 import { useStore } from '../store/useStore';
 
 export default function CheckoutPage() {
-  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, saveCustomer } = useStore();
+  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, saveCustomer, siteSettings } = useStore();
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
   const [confirmedTotal, setConfirmedTotal] = useState(0);
@@ -249,6 +249,20 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+                {form.paymentMethod === 'instapay' && siteSettings.instapayAccount && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+                    <p className="text-sm font-bold text-purple-700 font-cairo mb-1">حساب InstaPay للتحويل</p>
+                    <p className="text-lg font-black text-purple-900 font-cairo text-center" dir="ltr">{siteSettings.instapayAccount}</p>
+                    <p className="text-xs text-purple-500 font-cairo mt-1 text-center">حول المبلغ على الحساب أعلاه ثم أكمل الطلب</p>
+                  </div>
+                )}
+                {form.paymentMethod === 'vodafone' && siteSettings.vodafoneAccount && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                    <p className="text-sm font-bold text-red-700 font-cairo mb-1">رقم فودافون كاش للتحويل</p>
+                    <p className="text-lg font-black text-red-900 font-cairo text-center" dir="ltr">{siteSettings.vodafoneAccount}</p>
+                    <p className="text-xs text-red-500 font-cairo mt-1 text-center">حول المبلغ على الرقم أعلاه ثم أكمل الطلب</p>
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStep('info')}
