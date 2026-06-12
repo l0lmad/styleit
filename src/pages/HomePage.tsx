@@ -7,28 +7,32 @@ import ProductCard from '../components/ProductCard';
 export default function HomePage() {
   const { products, setActivePage, setSelectedCategory, siteSettings } = useStore();
 
-  const heroProducts = useMemo(() => {
-    return products.filter(p => p.images.length > 0).slice(0, 5);
-  }, [products]);
-  const heroImages = useMemo(() => {
-    return heroProducts.map(p => p.images[0]);
-  }, [heroProducts]);
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  useEffect(() => {
-    if (heroImages.length === 0) return;
-    if (currentImageIndex >= heroImages.length) {
-      setCurrentImageIndex(0);
+  const heroSlides = useMemo(() => {
+    const slides = products
+      .filter(p => p.images.length > 0)
+      .flatMap(p => p.images.map(url => ({ url, productId: p.id, productName: p.name, productPrice: p.price })));
+    for (let i = slides.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [slides[i], slides[j]] = [slides[j], slides[i]];
     }
-  }, [heroImages.length, currentImageIndex]);
+    return slides;
+  }, [products]);
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  useEffect(() => {
+    if (heroSlides.length === 0) return;
+    if (currentSlideIndex >= heroSlides.length) {
+      setCurrentSlideIndex(0);
+    }
+  }, [heroSlides.length, currentSlideIndex]);
 
   useEffect(() => {
-    if (heroImages.length === 0) return;
+    if (heroSlides.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [heroImages.length]);
+  }, [heroSlides.length]);
 
   const featured = products.filter(p => p.featured).slice(0, 4);
   const newArrivals = products.filter(p => p.newArrival).slice(0, 4);
@@ -102,35 +106,35 @@ export default function HomePage() {
           >
             <div className="relative z-10">
               <AnimatePresence mode="wait">
-                {heroImages.length > 0 && (
+                {heroSlides.length > 0 && (
                   <motion.div
-                    key={currentImageIndex}
+                    key={currentSlideIndex}
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
                     className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
-                    onClick={() => setActivePage(`product-${heroProducts[currentImageIndex]?.id}`)}
+                    onClick={() => setActivePage(`product-${heroSlides[currentSlideIndex]?.productId}`)}
                   >
-                    <img src={heroImages[currentImageIndex]} alt="" className="w-full h-56 sm:h-72 md:h-96 object-cover" />
-                    {heroProducts[currentImageIndex] && (
+                    <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-56 sm:h-72 md:h-96 object-cover" />
+                    {heroSlides[currentSlideIndex] && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <p className="text-white font-bold font-cairo text-lg">{heroProducts[currentImageIndex].name}</p>
-                        <p className="text-white/80 font-cairo text-sm">{heroProducts[currentImageIndex].price.toLocaleString()} جنيه</p>
+                        <p className="text-white font-bold font-cairo text-lg">{heroSlides[currentSlideIndex].productName}</p>
+                        <p className="text-white/80 font-cairo text-sm">{heroSlides[currentSlideIndex].productPrice.toLocaleString()} جنيه</p>
                       </div>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
               {/* Dots */}
-              {heroImages.length > 1 && (
+              {heroSlides.length > 1 && (
                 <div className="flex justify-center gap-2 mt-4" dir="ltr">
-                  {heroImages.map((_, idx) => (
+                  {heroSlides.map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
+                      onClick={() => setCurrentSlideIndex(idx)}
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'
+                        idx === currentSlideIndex ? 'bg-white w-6' : 'bg-white/50'
                       }`}
                     />
                   ))}
