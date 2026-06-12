@@ -3,37 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
-  BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone
+  BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
+  Bell, Image as ImageIcon, ArrowUp, ArrowDown
 } from 'lucide-react';
-import { useStore, Product, Order } from '../store/useStore';
+import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
 
-type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'settings';
+type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings';
 
 const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const;
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
-
-const COLOR_NAMES: Record<string, string> = {
-  '#ffffff': 'أبيض',
-  '#000000': 'أسود',
-  '#1a1a2e': 'كحلي',
-  '#4a90d9': 'أزرق',
-  '#c0392b': 'أحمر',
-  '#2c3e50': 'نيلي',
-  '#8e44ad': 'بنفسجي',
-  '#27ae60': 'أخضر',
-  '#2980b9': 'أزرق سماوي',
-  '#e74c3c': 'أحمر',
-  '#1a5276': 'أزرق غامق',
-  '#7f8c8d': 'رمادي',
-  '#3498db': 'أزرق',
-  '#2ecc71': 'أخضر',
-  '#8B4513': 'بني',
-  '#1a1a1a': 'أسود',
-  '#c0c0c0': 'فضي',
-  '#f43f5e': 'وردي',
-  '#a855f7': 'بنفسجي',
-  '#f97316': 'برتقالي',
-};
 
 const STATUS_LABELS: Record<Order['status'], string> = {
   pending: 'في الانتظار',
@@ -58,6 +36,7 @@ const emptyProduct = {
   category: 'رجالي' as typeof CATEGORIES[number],
   sizes: [] as string[],
   colors: ['#000000'],
+  colorLabels: {} as Record<string, string>,
   description: '',
   stock: 0,
   featured: false,
@@ -66,7 +45,7 @@ const emptyProduct = {
 };
 
 export default function AdminPage() {
-  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, updateUser } = useStore();
+  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, unreadOrderIds, markOrdersRead } = useStore();
   const [productForm, setProductForm] = useState({ ...emptyProduct });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -74,6 +53,7 @@ export default function AdminPage() {
   const [orderFilter, setOrderFilter] = useState<Order['status'] | 'all'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [newColor, setNewColor] = useState('');
+  const [newColorName, setNewColorName] = useState('');
 
   if (!currentUser || currentUser.role !== 'admin') {
     return (
@@ -129,6 +109,7 @@ export default function AdminPage() {
       category: p.category as typeof CATEGORIES[number],
       sizes: p.sizes,
       colors: p.colors,
+      colorLabels: p.colorLabels || {},
       description: p.description,
       stock: p.stock,
       featured: p.featured,
@@ -138,6 +119,7 @@ export default function AdminPage() {
     setEditingProductId(p.id);
     setShowProductModal(true);
     setNewColor('');
+    setNewColorName('');
   };
 
   const navItems: { key: Section; label: string; icon: any }[] = [
@@ -146,6 +128,7 @@ export default function AdminPage() {
     { key: 'orders', label: 'الطلبات', icon: ShoppingBag },
     { key: 'users', label: 'العملاء', icon: Users },
     { key: 'analytics', label: 'التحليلات', icon: BarChart2 },
+    { key: 'gallery', label: 'معرض الصور', icon: ImageIcon },
     { key: 'settings', label: 'الإعدادات', icon: Settings },
   ];
 
@@ -170,7 +153,12 @@ export default function AdminPage() {
           {navItems.map(item => (
             <button
               key={item.key}
-              onClick={() => setAdminSection(item.key)}
+              onClick={() => {
+                if (item.key === 'orders' && unreadOrderIds.length > 0) {
+                  markOrdersRead(unreadOrderIds);
+                }
+                setAdminSection(item.key);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-cairo font-medium transition-all ${
                 adminSection === item.key
                   ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20'
@@ -185,6 +173,24 @@ export default function AdminPage() {
             </button>
           ))}
         </nav>
+        {/* Notification Bell */}
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => {
+              if (unreadOrderIds.length > 0) {
+                setAdminSection('orders');
+                markOrdersRead(unreadOrderIds);
+              }
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-cairo font-medium transition-all text-gray-400 hover:bg-gray-800 hover:text-white relative"
+          >
+            <Bell className="w-5 h-5" />
+            إشعارات جديدة
+            {unreadOrderIds.length > 0 && (
+              <span className="mr-auto bg-pink-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">{unreadOrderIds.length}</span>
+            )}
+          </button>
+        </div>
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-sm font-bold">
@@ -203,13 +209,21 @@ export default function AdminPage() {
         {navItems.map(item => (
           <button
             key={item.key}
-            onClick={() => setAdminSection(item.key)}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-cairo transition-all ${
+            onClick={() => {
+              if (item.key === 'orders' && unreadOrderIds.length > 0) {
+                markOrdersRead(unreadOrderIds);
+              }
+              setAdminSection(item.key);
+            }}
+            className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-cairo transition-all relative ${
               adminSection === item.key ? 'text-pink-400' : 'text-gray-500'
             }`}
           >
             <item.icon className="w-5 h-5" />
             {item.label}
+            {item.key === 'orders' && unreadOrderIds.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">{unreadOrderIds.length}</span>
+            )}
           </button>
         ))}
       </div>
@@ -223,6 +237,34 @@ export default function AdminPage() {
               <h1 className="text-2xl font-black text-gray-900 font-cairo">لوحة التحكم 👋</h1>
               <p className="text-gray-500 font-cairo text-sm">مرحباً {currentUser.name}، إليك ملخص المتجر</p>
             </div>
+
+            {/* New Orders Alert */}
+            {unreadOrderIds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-5 rounded-2xl shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Bell className="w-6 h-6 animate-bounce" />
+                    <div>
+                      <p className="font-black font-cairo text-lg">طلبات جديدة! 🎉</p>
+                      <p className="text-white/80 font-cairo text-sm">لديك {unreadOrderIds.length} طلب {unreadOrderIds.length === 1 ? 'جديد' : 'جديدة'} في انتظار المراجعة</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setAdminSection('orders');
+                      markOrdersRead(unreadOrderIds);
+                    }}
+                    className="bg-white text-pink-600 px-5 py-2 rounded-xl font-bold font-cairo text-sm hover:shadow-lg transition-all"
+                  >
+                    عرض الطلبات
+                  </button>
+                </div>
+              </motion.div>
+            )}
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -299,7 +341,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة المنتجات</h1>
               <button
-                onClick={() => { setProductForm({ ...emptyProduct }); setEditingProductId(null); setShowProductModal(true); setNewColor(''); }}
+                onClick={() => { setProductForm({ ...emptyProduct }); setEditingProductId(null); setShowProductModal(true); setNewColor(''); setNewColorName(''); }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
               >
                 <Plus className="w-4 h-4" />
@@ -405,7 +447,7 @@ export default function AdminPage() {
             </div>
             <div className="space-y-4">
               {filteredOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all" onClick={() => setSelectedOrderId(order.id)}>
+                <div key={order.id} className="bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all" onClick={() => { setSelectedOrderId(order.id); if (unreadOrderIds.includes(order.id)) markOrdersRead([order.id]); }}>
                   <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <div>
                       <p className="font-black text-gray-900 font-cairo">{order.id}</p>
@@ -679,6 +721,120 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Gallery */}
+        {adminSection === 'gallery' && (
+          <div className="space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h1 className="text-2xl font-black text-gray-900 font-cairo">معرض الصور</h1>
+              <button
+                onClick={() => updateSiteSettings({ heroImages: [...siteSettings.heroImages, ''] })}
+                className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
+              >
+                <Plus className="w-4 h-4" />
+                إضافة صورة
+              </button>
+            </div>
+
+            {/* Hero Images */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-pink-500" /> صور الهيرو (الرئيسية)
+              </h2>
+              <p className="text-sm text-gray-500 font-cairo mb-4">هذه الصور تظهر في القسم الرئيسي (الهيرو) في الصفحة الرئيسية. يمكنك ترتيبها وإدارة عناوين URL الخاصة بها.</p>
+              <div className="space-y-3">
+                {siteSettings.heroImages.length === 0 && (
+                  <p className="text-center text-gray-400 font-cairo py-6">لا توجد صور. أضف صوراً جديدة باستخدام الزر أعلاه.</p>
+                )}
+                {siteSettings.heroImages.map((img, idx) => (
+                  <div key={idx} className="flex gap-2 items-start bg-gray-50 rounded-xl p-3">
+                    <div className="flex flex-col gap-1 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const imgs = [...siteSettings.heroImages];
+                          if (idx > 0) { [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]]; }
+                          updateSiteSettings({ heroImages: imgs });
+                        }}
+                        disabled={idx === 0}
+                        className={`p-1 rounded-lg transition-all ${idx === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const imgs = [...siteSettings.heroImages];
+                          if (idx < imgs.length - 1) { [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]]; }
+                          updateSiteSettings({ heroImages: imgs });
+                        }}
+                        disabled={idx === siteSettings.heroImages.length - 1}
+                        className={`p-1 rounded-lg transition-all ${idx === siteSettings.heroImages.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0 bg-white">
+                      {img ? (
+                        <img src={img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).classList.add('hidden'); }} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon className="w-6 h-6" /></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <input
+                        value={img}
+                        onChange={e => {
+                          const imgs = [...siteSettings.heroImages];
+                          imgs[idx] = e.target.value;
+                          updateSiteSettings({ heroImages: imgs });
+                        }}
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300"
+                        dir="ltr"
+                      />
+                    </div>
+                    {siteSettings.heroImages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => updateSiteSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* All Product Images */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <Package className="w-5 h-5 text-pink-500" /> صور المنتجات
+              </h2>
+              <p className="text-sm text-gray-500 font-cairo mb-4">جميع الصور المستخدمة في المنتجات. يمكنك إدارتها من قسم المنتجات.</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                {products.flatMap(p => p.images.map(img => ({ img, productName: p.name, productId: p.id }))).map((item, idx) => (
+                  <div key={`${item.productId}-${idx}`} className="group relative">
+                    <img
+                      src={item.img}
+                      alt={item.productName}
+                      className="w-full aspect-square object-cover rounded-xl border border-gray-200"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-[10px] font-cairo text-center px-1 leading-tight">{item.productName}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {products.flatMap(p => p.images).length === 0 && (
+                <p className="text-center text-gray-400 font-cairo py-6">لا توجد صور منتجات</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Settings */}
         {adminSection === 'settings' && (
           <div className="space-y-6">
@@ -763,34 +919,36 @@ export default function AdminPage() {
               </div>
               {/* Hero Images */}
               <div className="mt-4">
-                <label className="text-sm font-medium text-gray-700 font-cairo block mb-2">صور الهيرو</label>
-                {siteSettings.heroImages.map((img, idx) => (
-                  <div key={idx} className="flex gap-2 mb-2">
-                    <input value={img} onChange={e => {
-                      const imgs = [...siteSettings.heroImages];
-                      imgs[idx] = e.target.value;
-                      updateSiteSettings({ heroImages: imgs });
-                    }} placeholder="https://..." className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                    {siteSettings.heroImages.length > 1 && (
-                      <button type="button" onClick={() => updateSiteSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
-                        className="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 text-sm">
-                        <X className="w-4 h-4" />
-                      </button>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-700 font-cairo">صور الهيرو</label>
+                  <button type="button" onClick={() => setAdminSection('gallery')}
+                    className="text-xs text-pink-500 font-cairo hover:text-pink-600 flex items-center gap-1">
+                    <ImageIcon className="w-3 h-3" /> إدارة متقدمة
+                  </button>
+                </div>
+                {siteSettings.heroImages.length === 0 ? (
+                  <p className="text-sm text-gray-400 font-cairo mb-2">لا توجد صور</p>
+                ) : (
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {siteSettings.heroImages.filter(Boolean).slice(0, 4).map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                          onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                        <button type="button" onClick={() => updateSiteSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {siteSettings.heroImages.filter(Boolean).length > 4 && (
+                      <span className="w-16 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-cairo">+{siteSettings.heroImages.filter(Boolean).length - 4}</span>
                     )}
                   </div>
-                ))}
+                )}
                 <button type="button" onClick={() => updateSiteSettings({ heroImages: [...siteSettings.heroImages, ''] })}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all mt-2">
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
                   <Plus className="w-4 h-4" /> إضافة صورة
                 </button>
-                {siteSettings.heroImages.filter(Boolean).length > 0 && (
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    {siteSettings.heroImages.filter(Boolean).map((img, idx) => (
-                      <img key={idx} src={img} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                        onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1151,6 +1309,24 @@ export default function AdminPage() {
                     <div className="space-y-2">
                       {productForm.images.map((img, idx) => (
                         <div key={idx} className="flex gap-2">
+                          <div className="flex flex-col gap-0.5">
+                            <button type="button" onClick={() => {
+                              const imgs = [...productForm.images];
+                              if (idx > 0) { [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]]; }
+                              setProductForm(f => ({ ...f, images: imgs }));
+                            }} disabled={idx === 0}
+                              className={`p-0.5 rounded transition-all ${idx === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button type="button" onClick={() => {
+                              const imgs = [...productForm.images];
+                              if (idx < imgs.length - 1) { [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]]; }
+                              setProductForm(f => ({ ...f, images: imgs }));
+                            }} disabled={idx === productForm.images.length - 1}
+                              className={`p-0.5 rounded transition-all ${idx === productForm.images.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                           <input value={img} onChange={e => {
                             const imgs = [...productForm.images];
                             imgs[idx] = e.target.value;
@@ -1172,8 +1348,11 @@ export default function AdminPage() {
                     {/* Image Preview */}
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {productForm.images.filter(Boolean).map((img, idx) => (
-                        <img key={idx} src={img} alt="" className="w-14 h-14 object-cover rounded-lg border border-gray-200"
-                          onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                        <div key={idx} className="relative">
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-800 text-white text-[9px] rounded-full flex items-center justify-center font-bold">{idx + 1}</span>
+                          <img src={img} alt="" className="w-14 h-14 object-cover rounded-lg border border-gray-200"
+                            onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -1181,10 +1360,15 @@ export default function AdminPage() {
                     <label className="text-sm font-medium text-gray-700 font-cairo block mb-2">الألوان المتاحة *</label>
                     <div className="flex gap-2 flex-wrap mb-3">
                       {productForm.colors.map((c, idx) => (
-                        <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
-                          <span className="w-5 h-5 rounded-full border border-gray-300" style={{ backgroundColor: c }} />
-                          <span className="text-xs font-cairo text-gray-600 ml-1">{COLOR_NAMES[c] || c}</span>
-                          <button type="button" onClick={() => setProductForm(f => ({ ...f, colors: f.colors.filter((_, i) => i !== idx) }))}
+                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200">
+                          <span className="w-5 h-5 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: c }} />
+                          <span className="text-xs font-bold font-cairo text-gray-700">{productForm.colorLabels?.[c] || COLOR_NAMES[c] || c}</span>
+                          <button type="button" onClick={() => {
+                            const newColors = productForm.colors.filter((_, i) => i !== idx);
+                            const newLabels = { ...productForm.colorLabels };
+                            delete newLabels[c];
+                            setProductForm(f => ({ ...f, colors: newColors, colorLabels: newLabels }));
+                          }}
                             className="text-red-400 hover:text-red-600 transition-all">
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -1192,14 +1376,19 @@ export default function AdminPage() {
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      <input type="color" value={newColor || '#000000'} onChange={e => setNewColor(e.target.value)}
+                      <input type="color" value={newColor || '#000000'} onChange={e => { setNewColor(e.target.value); if (!newColorName) setNewColorName(COLOR_NAMES[e.target.value] || ''); }}
                         className="w-10 h-10 p-0.5 border border-gray-200 rounded-lg cursor-pointer" />
                       <input type="text" value={newColor} onChange={e => setNewColor(e.target.value)}
-                        placeholder="#000000" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
+                        placeholder="#000000" className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
+                      <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)}
+                        placeholder="اسم اللون" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                       <button type="button" onClick={() => {
                         if (newColor && !productForm.colors.includes(newColor)) {
-                          setProductForm(f => ({ ...f, colors: [...f.colors, newColor] }));
+                          const newLabels = { ...productForm.colorLabels };
+                          if (newColorName) newLabels[newColor] = newColorName;
+                          setProductForm(f => ({ ...f, colors: [...f.colors, newColor], colorLabels: newLabels }));
                           setNewColor('');
+                          setNewColorName('');
                         }
                       }}
                         className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-cairo hover:bg-pink-600 transition-all flex items-center gap-1">

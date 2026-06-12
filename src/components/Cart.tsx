@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore, getColorLabel } from '../store/useStore';
 
 export default function Cart() {
   const {
@@ -83,10 +83,13 @@ export default function Cart() {
                         <p className="font-semibold text-gray-900 text-sm font-cairo truncate">{item.product.name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-gray-500 font-cairo">مقاس: {item.size}</span>
-                          <span
-                            className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          />
+                          <span className="flex items-center gap-1">
+                            <span
+                              className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="text-[10px] text-gray-400 font-cairo">{getColorLabel(item.color, item.product)}</span>
+                          </span>
                         </div>
                         <p className="text-pink-600 font-bold text-sm mt-1 font-cairo">
                           {(item.product.price * item.quantity).toLocaleString()} جنيه

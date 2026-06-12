@@ -13,6 +13,7 @@ export interface Product {
   category: Category;
   sizes: Size[];
   colors: string[];
+  colorLabels?: Record<string, string>;
   images: string[];
   description: string;
   stock: number;
@@ -21,6 +22,11 @@ export interface Product {
   featured: boolean;
   newArrival: boolean;
   createdAt: string;
+}
+
+export function getColorLabel(color: string, product?: Product): string {
+  if (product?.colorLabels?.[color]) return product.colorLabels[color];
+  return COLOR_NAMES[color] || color;
 }
 
 export interface Review {
@@ -99,6 +105,35 @@ export interface SiteSettings {
   whatsappNumber: string;
 }
 
+export const COLOR_NAMES: Record<string, string> = {
+  '#ffffff': 'أبيض',
+  '#000000': 'أسود',
+  '#1a1a2e': 'كحلي',
+  '#4a90d9': 'أزرق',
+  '#c0392b': 'أحمر',
+  '#2c3e50': 'نيلي',
+  '#8e44ad': 'بنفسجي',
+  '#27ae60': 'أخضر',
+  '#2980b9': 'أزرق سماوي',
+  '#e74c3c': 'أحمر',
+  '#1a5276': 'أزرق غامق',
+  '#7f8c8d': 'رمادي',
+  '#3498db': 'أزرق',
+  '#2ecc71': 'أخضر',
+  '#8B4513': 'بني',
+  '#1a1a1a': 'أسود',
+  '#c0c0c0': 'فضي',
+  '#f43f5e': 'وردي',
+  '#a855f7': 'بنفسجي',
+  '#f97316': 'برتقالي',
+  '#6c3483': 'بنفسجي غامق',
+  '#4338ca': 'نيلي',
+  '#0ea5e9': 'أزرق فاتح',
+  '#10b981': 'أخضر زمردي',
+  '#f59e0b': 'ذهبي',
+  '#ef4444': 'أحمر',
+};
+
 export interface Customer {
   name: string;
   phone: string;
@@ -138,8 +173,10 @@ interface StoreState {
 
   // Orders
   orders: Order[];
+  unreadOrderIds: string[];
   placeOrder: (order: Omit<Order, 'id' | 'createdAt'>) => string;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  markOrdersRead: (orderIds: string[]) => void;
 
   // UI
   searchQuery: string;
@@ -347,6 +384,7 @@ export const useStore = create<StoreState>()(
       products: sampleProducts,
       cart: [],
       orders: [],
+      unreadOrderIds: [],
       searchQuery: '',
       selectedCategory: 'الكل',
       activePage: 'home',
@@ -535,6 +573,7 @@ export const useStore = create<StoreState>()(
             orders: [...state.orders, newOrder],
             users: updatedUsers,
             products: updatedProducts,
+            unreadOrderIds: [...state.unreadOrderIds, id],
             currentUser:
               state.currentUser?.id === order.userId
                 ? { ...state.currentUser, orders: [...(state.currentUser.orders || []), id] }
@@ -543,6 +582,11 @@ export const useStore = create<StoreState>()(
         });
         return id;
       },
+
+      markOrdersRead: (orderIds) =>
+        set(state => ({
+          unreadOrderIds: state.unreadOrderIds.filter(id => !orderIds.includes(id)),
+        })),
 
       updateOrderStatus: (orderId, status) =>
         set(state => ({
@@ -580,7 +624,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'wara-wear-storage',
-      version: 2,
+      version: 3,
       migrate: (persisted: any) => {
         if (!persisted.siteSettings?.footerQuickLinks) {
           persisted.siteSettings = {
@@ -632,6 +676,7 @@ export const useStore = create<StoreState>()(
         products: state.products,
         cart: state.cart,
         orders: state.orders,
+        unreadOrderIds: state.unreadOrderIds,
         customers: state.customers,
         siteSettings: state.siteSettings,
       }),

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Heart, ShoppingCart, Plus, Minus, Share2, ChevronLeft, ChevronRight
 } from 'lucide-react';
-import { useStore, Size } from '../store/useStore';
+import { useStore, Size, getColorLabel } from '../store/useStore';
 
 interface Props { productId: string; }
 
@@ -126,16 +126,26 @@ export default function ProductDetailPage({ productId }: Props) {
             {/* Colors */}
             <div>
               <p className="text-sm font-semibold text-gray-700 font-cairo mb-2">اللون:</p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 {product.colors.map(c => (
                   <button
                     key={c}
                     onClick={() => setSelectedColor(c)}
-                    className={`w-10 h-10 rounded-full border-4 transition-all ${
-                      selectedColor === c ? 'border-pink-500 scale-110 shadow-lg' : 'border-transparent hover:border-gray-300'
+                    className={`flex flex-col items-center gap-1 transition-all ${
+                      selectedColor === c ? 'scale-110' : 'opacity-70 hover:opacity-100'
                     }`}
-                    style={{ backgroundColor: c }}
-                  />
+                  >
+                    <span className={`w-10 h-10 rounded-full border-4 transition-all shadow-md ${
+                      selectedColor === c ? 'border-pink-500 shadow-lg' : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                      style={{ backgroundColor: c }}
+                    />
+                    <span className={`text-[10px] font-cairo font-bold transition-all ${
+                      selectedColor === c ? 'text-pink-600 opacity-100' : 'text-gray-400 opacity-0'
+                    }`}>
+                      {getColorLabel(c, product)}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>

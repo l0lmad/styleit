@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Clock, Truck, CheckCircle, XCircle, ShoppingBag, X, Search } from 'lucide-react';
-import { useStore, Order } from '../store/useStore';
+import { useStore, Order, getColorLabel } from '../store/useStore';
 import { ReactNode } from 'react';
 
 const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; icon: ReactNode; bg: string }> = {
@@ -134,7 +134,10 @@ export default function OrdersPage() {
                               <p className="text-xs font-semibold text-gray-900 font-cairo line-clamp-1 max-w-[100px]">{item.product.name}</p>
                               <p className="text-xs text-gray-400 font-cairo flex items-center gap-1">
                                 {item.size} × {item.quantity}
-                                <span className="w-3 h-3 rounded-full border border-gray-300 inline-block" style={{ backgroundColor: item.color }} />
+                                <span className="flex items-center gap-1">
+                                  <span className="w-3 h-3 rounded-full border border-gray-300 inline-block" style={{ backgroundColor: item.color }} />
+                                  <span className="text-[10px]">{getColorLabel(item.color, item.product)}</span>
+                                </span>
                               </p>
                             </div>
                           </div>

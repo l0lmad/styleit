@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Eye } from 'lucide-react';
-import { useStore, Product } from '../store/useStore';
+import { useStore, Product, getColorLabel } from '../store/useStore';
 
 interface Props {
   product: Product;
@@ -112,14 +112,19 @@ export default function ProductCard({ product }: Props) {
           )}
         </div>
         {/* Colors */}
-        <div className="flex gap-1.5 mt-2">
+        <div className="flex gap-2 mt-2 flex-wrap">
           {product.colors.slice(0, 4).map(c => (
-            <span
-              key={c}
-              className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
-              style={{ backgroundColor: c }}
-            />
+            <div key={c} className="flex flex-col items-center gap-0.5" title={getColorLabel(c, product)}>
+              <span
+                className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                style={{ backgroundColor: c }}
+              />
+              <span className="text-[8px] text-gray-400 font-cairo leading-none">{getColorLabel(c, product)}</span>
+            </div>
           ))}
+          {product.colors.length > 4 && (
+            <span className="text-[10px] text-gray-400 font-cairo self-center">+{product.colors.length - 4}</span>
+          )}
         </div>
       </div>
     </motion.div>
