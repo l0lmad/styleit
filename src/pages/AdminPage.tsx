@@ -82,11 +82,9 @@ export default function AdminPage() {
   const handleDeleteProduct = (id: string) => { markUnsaved(); deleteProduct(id); };
 
   const handleSaveAll = () => {
-    if (window.confirm('هل تريد حفظ التعديلات؟')) {
-      saveAllToFirestore();
-      showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success');
-      hasUnsavedRef.current = false;
-    }
+    saveAllToFirestore();
+    showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success');
+    hasUnsavedRef.current = false;
   };
   const analyticsFilteredOrders = useMemo(() => {
     if (analyticsPeriod === 'all') return orders;
@@ -193,7 +191,7 @@ export default function AdminPage() {
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div>
-              <p className="font-black font-cairo text-lg cursor-pointer hover:text-pink-400 transition-colors" onClick={() => { if (!hasUnsavedRef.current || window.confirm('لديك تغييرات غير محفوظة. هل تريد الخروج؟')) { setActivePage('shop'); } }}>Wara Wear</p>
+              <p className="font-black font-cairo text-lg cursor-pointer hover:text-pink-400 transition-colors" onClick={() => setActivePage('shop')}>Wara Wear</p>
               <p className="text-xs text-gray-400 font-cairo">لوحة التحكم</p>
             </div>
           </div>
@@ -279,14 +277,6 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
-        {/* Floating Save Button (all screens) */}
-        <button
-          onClick={handleSaveAll}
-          className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-bold font-cairo hover:bg-green-500 transition-all"
-        >
-          <Save className="w-4 h-4" />
-          حفظ التغييرات
-        </button>
         {/* Dashboard */}
         {adminSection === 'dashboard' && (
           <div className="space-y-6">
