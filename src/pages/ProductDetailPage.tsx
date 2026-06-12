@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Heart, ShoppingCart, Plus, Minus, Share2, ChevronLeft, ChevronRight
@@ -16,6 +16,8 @@ export default function ProductDetailPage({ productId }: Props) {
   const [quantity, setQuantity] = useState(1);
   const [imgIndex, setImgIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'desc'>('desc');
+  const [showLens, setShowLens] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
 
   if (!product) {
     return (
@@ -56,24 +58,32 @@ export default function ProductDetailPage({ productId }: Props) {
         <div className="grid md:grid-cols-2 gap-10">
           {/* Images */}
           <div className="space-y-4">
-            <motion.div
-              key={imgIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="relative aspect-square bg-gray-100 rounded-3xl overflow-hidden cursor-zoom-in group"
-              onMouseMove={useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+            <div
+              className="relative aspect-square bg-gray-100 rounded-3xl overflow-hidden cursor-none group"
+              onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 100;
                 const y = ((e.clientY - rect.top) / rect.height) * 100;
-                e.currentTarget.style.setProperty('--zoom-x', `${x}%`);
-                e.currentTarget.style.setProperty('--zoom-y', `${y}%`);
-              }, [])}
+                setLensPos({ x, y });
+                setShowLens(true);
+              }}
+              onMouseEnter={() => setShowLens(true)}
+              onMouseLeave={() => setShowLens(false)}
             >
-              <img
-                src={product.images[imgIndex]}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-100 group-hover:scale-150"
-                style={{ transformOrigin: 'var(--zoom-x, 50%) var(--zoom-y, 50%)' }}
+              <img src={product.images[imgIndex]} alt={product.name} className="w-full h-full object-cover select-none pointer-events-none" />
+              {/* Magnifier Lens */}
+              <div
+                className="absolute w-[120px] h-[120px] rounded-full border-2 border-white shadow-xl pointer-events-none z-10"
+                style={{
+                  display: showLens ? 'block' : 'none',
+                  left: `calc(${lensPos.x}% - 60px)`,
+                  top: `calc(${lensPos.y}% - 60px)`,
+                  backgroundImage: `url(${product.images[imgIndex]})`,
+                  backgroundSize: '250%',
+                  backgroundPosition: `calc(${lensPos.x}% * 2.5 - 75%) calc(${lensPos.y}% * 2.5 - 75%)`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundClip: 'padding-box',
+                }}
               />
               {discount > 0 && (
                 <span className="absolute top-4 right-4 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-xl font-cairo">
@@ -96,7 +106,7 @@ export default function ProductDetailPage({ productId }: Props) {
                   </button>
                 </>
               )}
-            </motion.div>
+            </div>
             {product.images.length > 1 && (
               <div className="flex gap-3">
                 {product.images.map((img, i) => (
