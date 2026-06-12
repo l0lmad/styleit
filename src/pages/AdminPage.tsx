@@ -1304,6 +1304,17 @@ export default function AdminPage() {
                 ))}
               </div>
             </div>
+
+            {/* Save Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+                className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-2xl text-lg font-bold font-cairo shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <Save className="w-6 h-6" />
+                حفظ التغييرات
+              </button>
+            </div>
           </div>
         )}
       </main>
