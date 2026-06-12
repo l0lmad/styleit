@@ -123,14 +123,14 @@ export default function HomePage() {
       )}
 
       {/* Categories */}
-      {siteSettings.showCategories && (
+      {siteSettings.showCategories && categories.some(c => c.count > 0) && (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-black text-gray-900 font-cairo mb-2">تسوق حسب الفئة</h2>
           <p className="text-gray-500 font-cairo">اختر من بين أرقى التشكيلات</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {categories.map((cat, i) => (
+          {categories.filter(c => c.count > 0).map((cat, i) => (
             <motion.button
               key={cat.name}
               initial={{ opacity: 0, y: 30 }}
