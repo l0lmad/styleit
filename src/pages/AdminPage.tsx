@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
@@ -56,6 +56,22 @@ export default function AdminPage() {
   const [importData, setImportData] = useState('');
   const [newColor, setNewColor] = useState('');
   const [newColorName, setNewColorName] = useState('');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const analyticsFilteredOrders = useMemo(() => {
+    if (analyticsPeriod === 'all') return orders;
+    const now = new Date();
+    return orders.filter(o => {
+      const d = new Date(o.createdAt);
+      if (analyticsPeriod === 'week') {
+        const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0);
+        const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59,999);
+        return d >= start && d <= end;
+      }
+      if (analyticsPeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (analyticsPeriod === 'year') return d.getFullYear() === now.getFullYear();
+      return true;
+    });
+  }, [orders, analyticsPeriod]);
 
   if (!currentUser || currentUser.role !== 'admin') {
     return (
@@ -362,13 +378,28 @@ export default function AdminPage() {
           <div className="space-y-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة المنتجات</h1>
-              <button
-                onClick={() => { setProductForm({ ...emptyProduct }); setEditingProductId(null); setShowProductModal(true); setNewColor(''); setNewColorName(''); }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
-              >
-                <Plus className="w-4 h-4" />
-                إضافة منتج
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setProductForm({ ...emptyProduct }); setEditingProductId(null); setShowProductModal(true); setNewColor(''); setNewColorName(''); }}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
+                >
+                  <Plus className="w-4 h-4" />
+                  إضافة منتج
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm('هل أنت متأكد من حذف جميع المنتجات؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+                      useStore.setState({ products: [] });
+                      useStore.getState().saveAllToFirestore();
+                      showNotification('تم حذف جميع المنتجات ✓');
+                    }
+                  }}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-red-600 transition-all shadow-lg shadow-red-200"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  حذف الكل
+                </button>
+              </div>
             </div>
 
             {/* Search */}
@@ -698,27 +729,48 @@ export default function AdminPage() {
               </button>
             </div>
 
-            {/* Profit Summary */}
+            {/* Period Filter */}
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { key: 'all', label: 'الكل' },
+                { key: 'week', label: 'هذا الأسبوع' },
+                { key: 'month', label: 'هذا الشهر' },
+                { key: 'year', label: 'هذا العام' },
+              ].map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => setAnalyticsPeriod(p.key as typeof analyticsPeriod)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-cairo font-medium transition-all ${
+                    analyticsPeriod === p.key ? 'bg-pink-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {(() => {
+              const filteredOrders = analyticsFilteredOrders;
+              const delivered = filteredOrders.filter(o => o.status === 'delivered');
+              const revenue = delivered.reduce((a, o) => a + o.total, 0);
+              const cost = delivered.flatMap(o => o.items)
+                .reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0);
+              const profit = revenue - cost;
+              return (<>            {/* Profit Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(() => {
-                const revenue = orders.filter(o => o.status === 'delivered').reduce((a, o) => a + o.total, 0);
-                const cost = orders.filter(o => o.status === 'delivered').flatMap(o => o.items)
-                  .reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0);
-                const profit = revenue - cost;
-                return [
-                  { title: 'إجمالي الإيرادات', value: `${revenue.toLocaleString()} ج`, color: 'from-green-400 to-emerald-600', icon: <DollarSign className="w-5 h-5" /> },
-                  { title: 'إجمالي التكاليف', value: `${Math.round(cost).toLocaleString()} ج`, color: 'from-orange-400 to-red-500', icon: <ShoppingCart className="w-5 h-5" /> },
-                  { title: 'صافي الربح', value: `${Math.round(profit).toLocaleString()} ج`, color: 'from-blue-400 to-blue-600', icon: <BarChart2 className="w-5 h-5" /> },
-                  { title: 'هامش الربح', value: revenue > 0 ? `${((profit / revenue) * 100).toFixed(1)}%` : '0%', color: 'from-purple-400 to-purple-600', icon: <TrendingUp className="w-5 h-5" /> },
-                ].map((s, i) => (
-                  <motion.div key={s.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                    className={`bg-gradient-to-br ${s.color} text-white p-5 rounded-2xl shadow-lg`}>
-                    <div className="bg-white/20 p-2 rounded-xl inline-flex mb-2">{s.icon}</div>
-                    <p className="text-2xl font-black font-cairo">{s.value}</p>
-                    <p className="text-sm font-bold font-cairo mt-1">{s.title}</p>
-                  </motion.div>
-                ));
-              })()}
+              {[
+                { title: 'إجمالي الإيرادات', value: `${revenue.toLocaleString()} ج`, color: 'from-green-400 to-emerald-600', icon: <DollarSign className="w-5 h-5" /> },
+                { title: 'إجمالي التكاليف', value: `${Math.round(cost).toLocaleString()} ج`, color: 'from-orange-400 to-red-500', icon: <ShoppingCart className="w-5 h-5" /> },
+                { title: 'صافي الربح', value: `${Math.round(profit).toLocaleString()} ج`, color: 'from-blue-400 to-blue-600', icon: <BarChart2 className="w-5 h-5" /> },
+                { title: 'هامش الربح', value: revenue > 0 ? `${((profit / revenue) * 100).toFixed(1)}%` : '0%', color: 'from-purple-400 to-purple-600', icon: <TrendingUp className="w-5 h-5" /> },
+              ].map((s, i) => (
+                <motion.div key={s.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                  className={`bg-gradient-to-br ${s.color} text-white p-5 rounded-2xl shadow-lg`}>
+                  <div className="bg-white/20 p-2 rounded-xl inline-flex mb-2">{s.icon}</div>
+                  <p className="text-2xl font-black font-cairo">{s.value}</p>
+                  <p className="text-sm font-bold font-cairo mt-1">{s.title}</p>
+                </motion.div>
+              ))}
             </div>
 
             <div className="grid md:grid-cols-2 gap-5">
@@ -728,10 +780,10 @@ export default function AdminPage() {
                   <BarChart2 className="w-5 h-5 text-pink-500" /> المبيعات حسب الفئة
                 </h2>
                 {(['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const).map(cat => {
-                  const catOrders = orders.flatMap(o => o.items.filter(i => i.product.category === cat));
+                  const catOrders = filteredOrders.flatMap(o => o.items.filter(i => i.product.category === cat));
                   const catRevenue = catOrders.reduce((a, i) => a + i.product.price * i.quantity, 0);
                   const maxRevenue = Math.max(...(['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const).map(c =>
-                    orders.flatMap(o => o.items.filter(i => i.product.category === c)).reduce((a, i) => a + i.product.price * i.quantity, 0)
+                    filteredOrders.flatMap(o => o.items.filter(i => i.product.category === c)).reduce((a, i) => a + i.product.price * i.quantity, 0)
                   ), 1);
                   return (
                     <div key={cat} className="mb-3">
@@ -757,8 +809,8 @@ export default function AdminPage() {
                   <ShoppingBag className="w-5 h-5 text-pink-500" /> توزيع حالات الطلبات
                 </h2>
                 {Object.entries(STATUS_LABELS).map(([status, label]) => {
-                  const count = orders.filter(o => o.status === status).length;
-                  const pct = orders.length > 0 ? (count / orders.length) * 100 : 0;
+                  const count = filteredOrders.filter(o => o.status === status).length;
+                  const pct = filteredOrders.length > 0 ? (count / filteredOrders.length) * 100 : 0;
                   return (
                     <div key={status} className="mb-3">
                       <div className="flex justify-between text-sm font-cairo mb-1">
@@ -795,9 +847,9 @@ export default function AdminPage() {
                       {products
                         .map(p => ({
                           ...p,
-                          unitsSold: orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.quantity, 0),
-                          revenue: orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.product.price * i.quantity, 0),
-                          totalCost: orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0),
+                          unitsSold: filteredOrders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.quantity, 0),
+                          revenue: filteredOrders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.product.price * i.quantity, 0),
+                          totalCost: filteredOrders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0),
                         }))
                         .sort((a, b) => b.unitsSold - a.unitsSold)
                         .slice(0, 5)
@@ -819,8 +871,10 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </>);
+          })()}
+        </div>
+      )}
 
         {showImportModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowImportModal(false)}>
