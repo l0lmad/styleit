@@ -1,10 +1,15 @@
-import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, query } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, query, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Order } from '../store/useStore';
+import type { Order, Customer } from '../store/useStore';
 
 export async function saveOrderToFirestore(order: Order): Promise<void> {
   const docRef = doc(db, 'orders', order.id);
   await setDoc(docRef, order);
+}
+
+export async function updateOrderStatusInFirestore(orderId: string, status: Order['status']): Promise<void> {
+  const docRef = doc(db, 'orders', orderId);
+  await setDoc(docRef, { status }, { merge: true });
 }
 
 export async function deleteOrderFromFirestore(orderId: string): Promise<void> {
@@ -46,6 +51,29 @@ export function listenUnreadIds(callback: (ids: string[]) => void): () => void {
   return onSnapshot(docRef, (snap) => {
     if (snap.exists()) {
       callback(snap.data().ids || []);
+    }
+  });
+}
+
+export async function saveCustomersToFirestore(customers: Customer[]): Promise<void> {
+  const docRef = doc(db, 'data', 'customers');
+  await setDoc(docRef, { customers, updatedAt: Date.now() });
+}
+
+export async function loadCustomersFromFirestore(): Promise<Customer[]> {
+  const docRef = doc(db, 'data', 'customers');
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    return snap.data().customers || [];
+  }
+  return [];
+}
+
+export function listenCustomers(callback: (customers: Customer[]) => void): () => void {
+  const docRef = doc(db, 'data', 'customers');
+  return onSnapshot(docRef, (snap) => {
+    if (snap.exists()) {
+      callback(snap.data().customers || []);
     }
   });
 }

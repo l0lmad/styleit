@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
-import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds } from './lib/ordersService';
+import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds, loadCustomersFromFirestore, listenCustomers } from './lib/ordersService';
 import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
@@ -87,6 +87,23 @@ export default function App() {
       useStore.setState({ unreadOrderIds: ids });
     });
     return () => { unsubOrders(); unsubUnread(); };
+  }, []);
+
+  // Load customers from Firestore on mount
+  useEffect(() => {
+    loadCustomersFromFirestore().then((remote) => {
+      if (remote.length > 0) {
+        useStore.setState({ customers: remote });
+      }
+    });
+  }, []);
+
+  // Listen for customer changes from Firestore (cross-device)
+  useEffect(() => {
+    const unsub = listenCustomers((remote) => {
+      useStore.setState({ customers: remote });
+    });
+    return unsub;
   }, []);
 
   // Cross-tab sync: listen for localStorage changes from other tabs

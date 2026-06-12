@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { saveSettings } from '../lib/settingsService';
-import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestore } from '../lib/ordersService';
+import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestore, updateOrderStatusInFirestore, saveCustomersToFirestore } from '../lib/ordersService';
 import { saveAllProducts } from '../lib/productsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
@@ -618,10 +618,12 @@ export const useStore = create<StoreState>()(
         saveUnreadIdsToFirestore(newIds);
       },
 
-      updateOrderStatus: (orderId, status) =>
+      updateOrderStatus: (orderId, status) => {
         set(state => ({
           orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o),
-        })),
+        }));
+        updateOrderStatusInFirestore(orderId, status);
+      },
 
       setSearchQuery: (q) => set({ searchQuery: q }),
       setSelectedCategory: (cat) => set({ selectedCategory: cat }),
@@ -639,17 +641,19 @@ export const useStore = create<StoreState>()(
 
       saveCustomer: (info) => {
         set(state => {
+          let updated: Customer[];
           const exists = state.customers.find(c => c.phone === info.phone);
           if (exists) {
-            return {
-              customers: state.customers.map(c =>
-                c.phone === info.phone
-                  ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, address: info.address, city: info.city }
-                  : c
-              ),
-            };
+            updated = state.customers.map(c =>
+              c.phone === info.phone
+                ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, address: info.address, city: info.city }
+                : c
+            );
+          } else {
+            updated = [...state.customers, info];
           }
-          return { customers: [...state.customers, info] };
+          saveCustomersToFirestore(updated);
+          return { customers: updated };
         });
       },
 

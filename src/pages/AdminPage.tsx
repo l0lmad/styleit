@@ -189,7 +189,7 @@ export default function AdminPage() {
     { key: 'settings', label: 'الإعدادات', icon: Settings },
   ];
 
-  const filteredOrders = orders.filter(o => orderFilter === 'all' || o.status === orderFilter)
+  const filteredOrders = orders.filter(o => orderFilter === 'all' || (orderFilter === 'archive' ? (o.status === 'delivered' || o.status === 'cancelled') : o.status === orderFilter))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -522,7 +522,7 @@ export default function AdminPage() {
             </div>
             {/* Filter */}
             <div className="flex gap-2 flex-wrap">
-              {(['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const).map(s => (
+              {(['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'archive'] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setOrderFilter(s)}
@@ -530,9 +530,9 @@ export default function AdminPage() {
                     orderFilter === s ? 'bg-pink-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'
                   }`}
                 >
-                  {s === 'all' ? 'الكل' : STATUS_LABELS[s]}
+                  {s === 'all' ? 'الكل' : s === 'archive' ? 'الأرشيف' : STATUS_LABELS[s]}
                   <span className="mr-1 text-xs opacity-70">
-                    ({s === 'all' ? orders.length : orders.filter(o => o.status === s).length})
+                    ({s === 'all' ? orders.length : s === 'archive' ? orders.filter(o => o.status === 'delivered' || o.status === 'cancelled').length : orders.filter(o => o.status === s).length})
                   </span>
                 </button>
               ))}
