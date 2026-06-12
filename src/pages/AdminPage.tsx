@@ -4,9 +4,10 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
   BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
-  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save, Download
+  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save, Download, Edit3
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
+import { saveCustomersToFirestore } from '../lib/ordersService';
 
 type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings';
 
@@ -58,6 +59,8 @@ export default function AdminPage() {
   const [newColorName, setNewColorName] = useState('');
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
   const [statModal, setStatModal] = useState<{type: string; title: string} | null>(null);
+  const [viewingCustomer, setViewingCustomer] = useState<{name: string; orders: string[]; phone?: string; email?: string; address?: string; city?: string; createdAt: string} | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<{phone: string; name: string; email: string; address: string; city: string} | null>(null);
 
   const hasUnsavedRef = useRef(false);
   useEffect(() => {
@@ -661,7 +664,7 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {users.filter(u => u.role === 'customer').map(u => (
-                      <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={u.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setViewingCustomer({ name: u.name, orders: orders.filter(o => o.userId === u.id).map(o => o.id), email: u.email, createdAt: u.createdAt })}>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-black text-xs">{u.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{u.name}</span></div></td>
                         <td className="px-4 py-3 text-sm text-gray-500 font-cairo">—</td>
                         <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{u.email}</td>
@@ -671,22 +674,25 @@ export default function AdminPage() {
                         <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => o.userId === u.id && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
                         <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{u.createdAt}</td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`حذف العميل ${u.name}؟`)) {
-                                useStore.setState(s => ({ users: s.users.filter(x => x.id !== u.id) }));
-                                showNotification('تم حذف العميل', 'info');
-                              }
-                            }}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingCustomer({ phone: '', name: u.name, email: u.email, address: '', city: '' }); }}
+                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); if (window.confirm(`حذف العميل ${u.name}؟`)) { useStore.setState(s => ({ users: s.users.filter(x => x.id !== u.id) })); showNotification('تم حذف العميل', 'info'); } }}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                     {customers.map((c, i) => (
-                      <tr key={`guest-${i}`} className="hover:bg-gray-50 transition-colors">
+                      <tr key={`guest-${i}`} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setViewingCustomer({ name: c.name, orders: c.orders, phone: c.phone, email: c.email, address: c.address, city: c.city, createdAt: c.createdAt })}>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-xs">{c.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{c.name}</span></div></td>
                         <td className="px-4 py-3 text-sm font-bold text-gray-700 font-cairo" dir="ltr">{c.phone}</td>
                         <td className="px-4 py-3 text-sm text-gray-500 font-cairo">{c.email || '—'}</td>
@@ -696,17 +702,20 @@ export default function AdminPage() {
                         <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => c.orders.includes(o.id) && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
                         <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{c.createdAt}</td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`حذف العميل ${c.name}؟`)) {
-                                deleteCustomer(c.phone);
-                                showNotification('تم حذف العميل', 'info');
-                              }
-                            }}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingCustomer({ phone: c.phone, name: c.name, email: c.email || '', address: c.address || '', city: c.city || '' }); }}
+                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); if (window.confirm(`حذف العميل ${c.name}؟`)) { deleteCustomer(c.phone); showNotification('تم حذف العميل', 'info'); } }}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2085,6 +2094,144 @@ export default function AdminPage() {
                       <p className="text-sm font-cairo opacity-80">الإجمالي</p>
                       <p className="text-2xl font-black font-cairo">{order.total.toLocaleString()} جنيه</p>
                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Customer View Modal */}
+      <AnimatePresence>
+        {viewingCustomer && (() => {
+          const custOrders = orders.filter(o => viewingCustomer.orders.includes(o.id));
+          const prodMap = new Map(products.map(p => [p.id, p]));
+          return (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingCustomer(null)} className="fixed inset-0 bg-black/50 z-50" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-3xl z-50 overflow-y-auto shadow-2xl"
+                style={{ maxHeight: '90vh' }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-black text-gray-900 font-cairo flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-black text-sm">{viewingCustomer.name[0]}</div>
+                      {viewingCustomer.name}
+                    </h2>
+                    <button onClick={() => setViewingCustomer(null)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
+                  </div>
+                  <div className="space-y-3 font-cairo mb-5">
+                    {viewingCustomer.phone && <p className="text-sm"><span className="text-gray-500">الموبايل:</span> <span className="font-bold">{viewingCustomer.phone}</span></p>}
+                    {viewingCustomer.email && <p className="text-sm"><span className="text-gray-500">البريد:</span> <span className="font-bold">{viewingCustomer.email}</span></p>}
+                    {viewingCustomer.address && <p className="text-sm"><span className="text-gray-500">العنوان:</span> <span className="font-bold">{viewingCustomer.address}</span></p>}
+                    {viewingCustomer.city && <p className="text-sm"><span className="text-gray-500">المدينة:</span> <span className="font-bold">{viewingCustomer.city}</span></p>}
+                    <p className="text-sm"><span className="text-gray-500">تاريخ التسجيل:</span> <span className="font-bold">{viewingCustomer.createdAt}</span></p>
+                    <p className="text-sm"><span className="text-gray-500">إجمالي الطلبات:</span> <span className="font-bold">{custOrders.length}</span></p>
+                    <p className="text-sm"><span className="text-gray-500">إجمالي المشتريات:</span> <span className="font-bold text-green-600">{custOrders.filter(o => o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</span></p>
+                  </div>
+                  <p className="font-bold text-gray-900 font-cairo mb-3">طلبات العميل:</p>
+                  {custOrders.length === 0 && <p className="text-gray-400 text-center font-cairo py-6">لا توجد طلبات</p>}
+                  <div className="space-y-3">
+                    {custOrders.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(o => (
+                      <div key={o.id} className="bg-gray-50 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-lg font-bold font-cairo ${o.status === 'delivered' ? 'bg-green-100 text-green-700' : o.status === 'cancelled' ? 'bg-red-100 text-red-700' : o.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>{STATUS_LABELS[o.status]}</span>
+                          <span className="text-xs text-gray-400 font-cairo">{new Date(o.createdAt).toLocaleDateString('ar-EG')}</span>
+                        </div>
+                        {o.items.map((item, idx) => {
+                          const p = prodMap.get(item.product.id);
+                          return (
+                            <div key={idx} className="flex items-center gap-3 py-1">
+                              {p?.images?.[0] && <img src={p.images[0]} className="w-8 h-8 rounded-lg object-cover" />}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold font-cairo truncate">{item.product.name}</p>
+                                <p className="text-xs text-gray-400 font-cairo">{item.product.price.toLocaleString()} ج × {item.quantity}</p>
+                              </div>
+                              <p className="text-sm font-bold text-pink-600 font-cairo">{(item.product.price * item.quantity).toLocaleString()} ج</p>
+                            </div>
+                          );
+                        })}
+                        <div className="text-left mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-sm font-black font-cairo">الإجمالي: {o.total.toLocaleString()} ج</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Customer Edit Modal */}
+      <AnimatePresence>
+        {editingCustomer && (() => {
+          const [form, setForm] = useState(editingCustomer);
+          return (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCustomer(null)} className="fixed inset-0 bg-black/50 z-50" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-white rounded-3xl z-50 overflow-y-auto shadow-2xl"
+                style={{ maxHeight: '90vh' }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-black text-gray-900 font-cairo">تعديل بيانات العميل</h2>
+                    <button onClick={() => setEditingCustomer(null)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
+                  </div>
+                  <div className="space-y-4 font-cairo">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">الاسم</label>
+                      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">رقم الموبايل</label>
+                      <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">البريد الإلكتروني</label>
+                      <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">العنوان</label>
+                      <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">المدينة</label>
+                      <input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!form.phone) { showNotification('رقم الموبايل مطلوب', 'error'); return; }
+                        useStore.setState(s => ({
+                          customers: s.customers.map(c =>
+                            c.phone === editingCustomer.phone
+                              ? { ...c, name: form.name, phone: form.phone, email: form.email, address: form.address, city: form.city }
+                              : c
+                          ),
+                        }));
+                        saveCustomersToFirestore(useStore.getState().customers);
+                        setEditingCustomer(null);
+                        showNotification('تم تحديث بيانات العميل ✓');
+                      }}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-bold font-cairo hover:shadow-lg transition-all"
+                    >
+                      حفظ التغييرات
+                    </button>
                   </div>
                 </div>
               </motion.div>
