@@ -199,6 +199,7 @@ interface StoreState {
   // Site Settings
   siteSettings: SiteSettings;
   updateSiteSettings: (settings: Partial<SiteSettings>) => void;
+  productsUpdatedAt: number;
   customers: Customer[];
   saveCustomer: (info: Customer) => void;
   deleteCustomer: (phone: string) => void;
@@ -399,6 +400,7 @@ export const useStore = create<StoreState>()(
       isCartOpen: false,
       notification: null,
       customers: [],
+      productsUpdatedAt: 0,
       siteSettings: {
         heroTitle: 'أحدث صيحات الموضة في مكان واحد',
         heroSubtitle: 'تشكيلة واسعة من الملابس العصرية والإكسسوارات الفاخرة بأفضل الأسعار',
@@ -484,22 +486,27 @@ export const useStore = create<StoreState>()(
       },
 
       addProduct: (product) => {
-        set(state => ({ products: [...state.products, product] }));
+        const ts = Date.now();
+        set(state => ({ products: [...state.products, product], productsUpdatedAt: ts }));
         saveAllProducts(useStore.getState().products);
       },
 
       updateProduct: (product) => {
-        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p) }));
+        const ts = Date.now();
+        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p), productsUpdatedAt: ts }));
         saveAllProducts(useStore.getState().products);
       },
 
       deleteProduct: (id) => {
-        set(state => ({ products: state.products.filter(p => p.id !== id) }));
+        const ts = Date.now();
+        set(state => ({ products: state.products.filter(p => p.id !== id), productsUpdatedAt: ts }));
         saveAllProducts(useStore.getState().products);
       },
 
       saveAllToFirestore: () => {
         const state = useStore.getState();
+        const ts = Date.now();
+        useStore.setState({ productsUpdatedAt: ts });
         saveAllProducts(state.products);
         saveSettings(state.siteSettings);
       },
@@ -732,6 +739,7 @@ export const useStore = create<StoreState>()(
         currentUser: state.currentUser,
         users: state.users,
         products: state.products,
+        productsUpdatedAt: state.productsUpdatedAt,
         cart: state.cart,
         orders: state.orders,
         unreadOrderIds: state.unreadOrderIds,

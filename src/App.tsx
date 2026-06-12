@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds } from './lib/ordersService';
-import { loadAllProducts, listenProducts } from './lib/productsService';
+import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import Notification from './components/Notification';
@@ -58,17 +58,22 @@ export default function App() {
 
   // Load products from Firestore on mount
   useEffect(() => {
-    loadAllProducts().then((remoteProducts) => {
-      if (remoteProducts && remoteProducts.length > 0) {
-        useStore.setState({ products: remoteProducts });
+    loadAllProducts().then((remote) => {
+      if (!remote) return;
+      const localTs = useStore.getState().productsUpdatedAt;
+      if (remote.updatedAt > localTs) {
+        useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
       }
     });
   }, []);
 
   // Listen for product changes from Firestore (cross-device)
   useEffect(() => {
-    const unsub = listenProducts((remoteProducts) => {
-      useStore.setState({ products: remoteProducts });
+    const unsub = listenProducts((remote) => {
+      const localTs = useStore.getState().productsUpdatedAt;
+      if (remote.updatedAt > localTs) {
+        useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
+      }
     });
     return unsub;
   }, []);

@@ -389,7 +389,7 @@ export default function AdminPage() {
                 <button
                   onClick={() => {
                     if (window.confirm('هل أنت متأكد من حذف جميع المنتجات؟ هذا الإجراء لا يمكن التراجع عنه!')) {
-                      useStore.setState({ products: [] });
+                      useStore.setState({ products: [], productsUpdatedAt: Date.now() });
                       useStore.getState().saveAllToFirestore();
                       showNotification('تم حذف جميع المنتجات ✓');
                     }
