@@ -140,8 +140,8 @@ export default function ProductDetailPage({ productId }: Props) {
                     }`}
                       style={{ backgroundColor: c }}
                     />
-                    <span className={`text-[10px] font-cairo font-bold transition-all ${
-                      selectedColor === c ? 'text-pink-600 opacity-100' : 'text-gray-400 opacity-0'
+                    <span className={`text-[11px] font-cairo font-bold transition-all ${
+                      selectedColor === c ? 'text-pink-600' : 'text-gray-500'
                     }`}>
                       {getColorLabel(c, product)}
                     </span>

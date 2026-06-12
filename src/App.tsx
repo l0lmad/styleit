@@ -22,6 +22,27 @@ export default function App() {
     root.style.setProperty('--secondary', siteSettings.secondaryColor);
   }, [siteSettings.primaryColor, siteSettings.secondaryColor]);
 
+  // Cross-tab sync: listen for localStorage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'wara-wear-storage' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          const newOrders = parsed?.state?.orders;
+          const newUnread = parsed?.state?.unreadOrderIds;
+          if (newOrders || newUnread) {
+            useStore.setState(state => ({
+              orders: newOrders || state.orders,
+              unreadOrderIds: newUnread || state.unreadOrderIds,
+            }));
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const renderPage = () => {
     if (activePage.startsWith('product-')) {
       const productId = activePage.replace('product-', '');

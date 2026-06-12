@@ -69,34 +69,26 @@ export default function HomePage() {
                 <ArrowLeft className="w-5 h-5" />
                 {siteSettings.heroBtnText}
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => { setSelectedCategory('حريمي'); setActivePage('shop'); }}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-8 py-3.5 rounded-2xl font-bold font-cairo text-sm border border-white/30 hover:bg-white/30 transition-all"
-              >
-                {siteSettings.heroBtn2Text}
-              </motion.button>
             </div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="hidden md:block relative"
+            className="relative"
           >
-            <div className="relative z-10 grid grid-cols-2 gap-4">
+            <div className="relative z-10 grid grid-cols-2 sm:grid-cols-2 gap-3 md:gap-4">
               {(siteSettings.heroImages.filter(Boolean).length > 0 ? siteSettings.heroImages.filter(Boolean) : [
                 'https://images.pexels.com/photos/8311880/pexels-photo-8311880.jpeg?auto=compress&cs=tinysrgb&w=400',
                 'https://images.pexels.com/photos/8386666/pexels-photo-8386666.jpeg?auto=compress&cs=tinysrgb&w=400',
-              ]).slice(0, 2).map((src, idx) => (
+              ]).slice(0, 4).map((src, idx) => (
                 <motion.div
                   key={idx}
-                  animate={{ y: idx === 0 ? [0, -10, 0] : [0, 10, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, delay: idx === 1 ? 0.5 : 0 }}
-                  className={`rounded-3xl overflow-hidden shadow-2xl ${idx === 0 ? 'mt-10' : ''}`}
+                  animate={{ y: [0, idx % 2 === 0 ? -8 : 8, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, delay: idx * 0.3 }}
+                  className={`rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl ${idx % 2 === 0 ? 'mt-4 md:mt-8' : ''}`}
                 >
-                  <img src={src} alt={`fashion ${idx + 1}`} className="w-full h-56 object-cover" />
+                  <img src={src} alt="" className="w-full h-32 sm:h-40 md:h-48 object-cover" />
                 </motion.div>
               ))}
             </div>

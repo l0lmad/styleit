@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
   BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
-  Bell, Image as ImageIcon, ArrowUp, ArrowDown
+  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
 
@@ -427,7 +427,21 @@ export default function AdminPage() {
         {/* Orders */}
         {adminSection === 'orders' && (
           <div className="space-y-5">
-            <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة الطلبات</h1>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة الطلبات</h1>
+              <button onClick={() => {
+                try {
+                  const stored = JSON.parse(localStorage.getItem('wara-wear-storage') || '{}');
+                  const newOrders = stored?.state?.orders;
+                  const newUnread = stored?.state?.unreadOrderIds;
+                  if (newOrders) useStore.setState({ orders: newOrders });
+                  if (newUnread) useStore.setState({ unreadOrderIds: newUnread });
+                  showNotification('تم تحديث الطلبات ✓');
+                } catch { showNotification('خطأ في التحديث', 'error'); }
+              }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all">
+                <RefreshCw className="w-4 h-4" /> تحديث
+              </button>
+            </div>
             {/* Filter */}
             <div className="flex gap-2 flex-wrap">
               {(['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const).map(s => (

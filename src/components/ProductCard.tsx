@@ -112,18 +112,21 @@ export default function ProductCard({ product }: Props) {
           )}
         </div>
         {/* Colors */}
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {product.colors.slice(0, 4).map(c => (
-            <div key={c} className="flex flex-col items-center gap-0.5" title={getColorLabel(c, product)}>
+        <div className="flex gap-2 mt-1">
+          {product.colors.slice(0, 3).map(c => (
+            <div key={c} className="flex flex-col items-center gap-0.5">
               <span
-                className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                className="w-5 h-5 rounded-full border border-gray-200 shadow-sm"
                 style={{ backgroundColor: c }}
               />
-              <span className="text-[8px] text-gray-400 font-cairo leading-none">{getColorLabel(c, product)}</span>
+              <span className="text-[9px] text-gray-500 font-cairo font-medium leading-tight">{getColorLabel(c, product)}</span>
             </div>
           ))}
-          {product.colors.length > 4 && (
-            <span className="text-[10px] text-gray-400 font-cairo self-center">+{product.colors.length - 4}</span>
+          {product.colors.length > 3 && (
+            <div className="flex flex-col items-center justify-center gap-0.5">
+              <span className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] text-gray-500 font-bold">+</span>
+              <span className="text-[9px] text-gray-400 font-cairo">{product.colors.length - 3}</span>
+            </div>
           )}
         </div>
       </div>
