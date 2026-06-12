@@ -626,12 +626,13 @@ export default function AdminPage() {
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const csv = BOM + 'sep=,\n' + headers.join(',') + '\n' + rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const sep = '\t';
+                  const csv = BOM + headers.join(sep) + '\n' + rows.map(r => r.join(sep)).join('\n');
+                  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8;' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.tsv`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير بيانات العملاء ✓');
@@ -742,12 +743,13 @@ export default function AdminPage() {
                     });
                   const BOM = '\uFEFF';
                   const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
-                  const csv = BOM + 'sep=,\n' + headers.join(',') + '\n' + reportRows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const sep = '\t';
+                  const csv = BOM + headers.join(sep) + '\n' + reportRows.map(r => r.join(sep)).join('\n');
+                  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8;' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.tsv`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير التحليلات ✓');
