@@ -212,7 +212,7 @@ export default function AdminPage() {
         {/* Save Changes Button */}
         <div className="px-4 pb-2">
           <button
-            onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-cairo font-bold transition-all bg-green-600 text-white hover:bg-green-500"
           >
             <Save className="w-5 h-5" />
@@ -261,7 +261,7 @@ export default function AdminPage() {
         {/* Floating Save Button (mobile) */}
         <div className="md:hidden fixed top-4 left-4 z-50">
           <button
-            onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
             className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg text-sm font-bold font-cairo hover:bg-green-500 transition-all"
           >
             <Save className="w-4 h-4" />
@@ -1436,7 +1436,7 @@ export default function AdminPage() {
             {/* Save Button */}
             <div className="flex justify-center">
               <button
-                onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
                 className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-2xl text-lg font-bold font-cairo shadow-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 <Save className="w-6 h-6" />

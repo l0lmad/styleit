@@ -636,7 +636,6 @@ export const useStore = create<StoreState>()(
 
       updateSiteSettings: (settings) => {
         set(state => ({ siteSettings: { ...state.siteSettings, ...settings } }));
-        saveSettings(settings);
       },
 
       saveCustomer: (info) => {
