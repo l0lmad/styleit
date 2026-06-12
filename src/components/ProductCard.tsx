@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Eye } from 'lucide-react';
+import { Heart, ShoppingCart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore, Product, getColorLabel } from '../store/useStore';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
 export default function ProductCard({ product }: Props) {
   const { currentUser, toggleWishlist, showNotification } = useStore();
   const [hovered, setHovered] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
 
   const isWishlisted = currentUser?.wishlist?.includes(product.id);
   const discount = product.oldPrice
@@ -39,10 +40,39 @@ export default function ProductCard({ product }: Props) {
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-100 aspect-[3/4]">
         <img
-          src={product.images[0]}
+          src={product.images[imageIndex] || product.images[0]}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          onClick={e => { e.stopPropagation(); useStore.getState().setActivePage(`product-${product.id}`); }}
         />
+        {/* Image navigation */}
+        {product.images.length > 1 && (
+          <>
+            <button
+              onClick={e => { e.stopPropagation(); setImageIndex(prev => (prev - 1 + product.images.length) % product.images.length); }}
+              className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+            >
+              <ChevronRight className="w-4 h-4 text-gray-800" />
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); setImageIndex(prev => (prev + 1) % product.images.length); }}
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-800" />
+            </button>
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1" dir="ltr">
+              {product.images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={e => { e.stopPropagation(); setImageIndex(i); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    i === imageIndex ? 'bg-white w-3' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
         {/* Badges */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {discount > 0 && (
