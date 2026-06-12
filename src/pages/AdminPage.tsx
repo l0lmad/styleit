@@ -621,18 +621,21 @@ export default function AdminPage() {
                     })),
                   ];
                   const BOM = '\uFEFF';
+                  const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                   const headers = ['الاسم', 'رقم الموبايل', 'البريد الإلكتروني', 'العنوان', 'المدينة', 'عدد الطلبات', 'إجمالي المشتريات', 'تاريخ التسجيل'];
                   const rows = allCustomers.map(c => [
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const sep = '\t';
-                  const csv = BOM + headers.join(sep) + '\n' + rows.map(r => r.join(sep)).join('\n');
-                  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8;' });
+                  const html = `<table>
+                    <thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
+                    <tbody>${rows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border:1px solid #ddd;text-align:center">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+                  </table>`;
+                  const blob = new Blob([BOM + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.tsv`;
+                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.xls`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير بيانات العملاء ✓');
@@ -742,14 +745,17 @@ export default function AdminPage() {
                       ];
                     });
                   const BOM = '\uFEFF';
+                  const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                   const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
-                  const sep = '\t';
-                  const csv = BOM + headers.join(sep) + '\n' + reportRows.map(r => r.join(sep)).join('\n');
-                  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8;' });
+                  const html = `<table>
+                    <thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
+                    <tbody>${reportRows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border:1px solid #ddd;text-align:center">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+                  </table>`;
+                  const blob = new Blob([BOM + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.tsv`;
+                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.xls`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير التحليلات ✓');
