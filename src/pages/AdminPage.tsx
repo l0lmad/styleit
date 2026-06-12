@@ -636,8 +636,9 @@ export default function AdminPage() {
                   const a = document.createElement('a');
                   a.href = url;
                   a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.xls`;
+                  document.body.appendChild(a);
                   a.click();
-                  URL.revokeObjectURL(url);
+                  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
                   showNotification('تم تصدير بيانات العملاء ✓');
                 }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200"
@@ -756,8 +757,9 @@ export default function AdminPage() {
                   const a = document.createElement('a');
                   a.href = url;
                   a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.xls`;
+                  document.body.appendChild(a);
                   a.click();
-                  URL.revokeObjectURL(url);
+                  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
                   showNotification('تم تصدير التحليلات ✓');
                 }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200"
