@@ -56,11 +56,14 @@ export default function App() {
     });
   }, []);
 
-  // Load products from Firestore on mount (when admin explicitly saved)
+  // Load products from Firestore on mount (seed from localStorage if empty)
   useEffect(() => {
     loadAllProducts().then((remoteProducts) => {
+      const local = useStore.getState().products;
       if (remoteProducts && remoteProducts.length > 0) {
         useStore.setState({ products: remoteProducts });
+      } else if (local.length > 0) {
+        saveAllProducts(local);
       }
     });
   }, []);

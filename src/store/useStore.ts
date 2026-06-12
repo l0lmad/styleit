@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { saveSettings } from '../lib/settingsService';
 import { saveOrderToFirestore, saveUnreadIdsToFirestore } from '../lib/ordersService';
-import { saveAllProducts, loadAllProducts } from '../lib/productsService';
+import { saveAllProducts } from '../lib/productsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
@@ -479,13 +479,20 @@ export const useStore = create<StoreState>()(
         }));
       },
 
-      addProduct: (product) => set(state => ({ products: [...state.products, product] })),
+      addProduct: (product) => {
+        set(state => ({ products: [...state.products, product] }));
+        saveAllProducts(useStore.getState().products);
+      },
 
-      updateProduct: (product) =>
-        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p) })),
+      updateProduct: (product) => {
+        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p) }));
+        saveAllProducts(useStore.getState().products);
+      },
 
-      deleteProduct: (id) =>
-        set(state => ({ products: state.products.filter(p => p.id !== id) })),
+      deleteProduct: (id) => {
+        set(state => ({ products: state.products.filter(p => p.id !== id) }));
+        saveAllProducts(useStore.getState().products);
+      },
 
       saveAllToFirestore: () => {
         const state = useStore.getState();
