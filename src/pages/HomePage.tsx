@@ -102,14 +102,14 @@ export default function HomePage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative"
+            className="relative overflow-hidden"
           >
             <div className="relative z-10">
               <AnimatePresence mode="wait">
                 {heroSlides.length > 0 && (
                   <motion.div
                     key={currentSlideIndex}
-                    initial={{ opacity: 0, x: 50 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
