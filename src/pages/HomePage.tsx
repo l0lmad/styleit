@@ -7,22 +7,23 @@ import ProductCard from '../components/ProductCard';
 export default function HomePage() {
   const { products, setActivePage, setSelectedCategory, siteSettings } = useStore();
 
+  const heroProducts = useMemo(() => {
+    return products.filter(p => p.images.length > 0).slice(0, 5);
+  }, [products]);
   const heroImages = useMemo(() => {
-    const imgs = siteSettings.heroImages.filter(Boolean);
-    return imgs.length > 0 ? imgs : [
-      'https://images.pexels.com/photos/8311880/pexels-photo-8311880.jpeg?auto=compress&cs=tinysrgb&w=400',
-      'https://images.pexels.com/photos/8386666/pexels-photo-8386666.jpeg?auto=compress&cs=tinysrgb&w=400',
-    ];
-  }, [siteSettings.heroImages]);
+    return heroProducts.map(p => p.images[0]);
+  }, [heroProducts]);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   useEffect(() => {
+    if (heroImages.length === 0) return;
     if (currentImageIndex >= heroImages.length) {
       setCurrentImageIndex(0);
     }
   }, [heroImages.length, currentImageIndex]);
 
   useEffect(() => {
+    if (heroImages.length === 0) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     }, 3000);
@@ -108,9 +109,16 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl"
+                    className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
+                    onClick={() => setActivePage(`product-${heroProducts[currentImageIndex]?.id}`)}
                   >
                     <img src={heroImages[currentImageIndex]} alt="" className="w-full h-56 sm:h-72 md:h-96 object-cover" />
+                    {heroProducts[currentImageIndex] && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <p className="text-white font-bold font-cairo text-lg">{heroProducts[currentImageIndex].name}</p>
+                        <p className="text-white/80 font-cairo text-sm">{heroProducts[currentImageIndex].price.toLocaleString()} جنيه</p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
