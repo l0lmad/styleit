@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { saveSettings } from '../lib/settingsService';
 import { saveOrderToFirestore, saveUnreadIdsToFirestore } from '../lib/ordersService';
-import { saveAllProducts } from '../lib/productsService';
+import { saveAllProducts, loadAllProducts } from '../lib/productsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
@@ -162,6 +162,7 @@ interface StoreState {
   addProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
+  saveAllToFirestore: () => void;
   addReview: (productId: string, review: Review) => void;
 
   // Cart
@@ -478,19 +479,18 @@ export const useStore = create<StoreState>()(
         }));
       },
 
-      addProduct: (product) => {
-        set(state => ({ products: [...state.products, product] }));
-        saveAllProducts(useStore.getState().products);
-      },
+      addProduct: (product) => set(state => ({ products: [...state.products, product] })),
 
-      updateProduct: (product) => {
-        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p) }));
-        saveAllProducts(useStore.getState().products);
-      },
+      updateProduct: (product) =>
+        set(state => ({ products: state.products.map(p => p.id === product.id ? product : p) })),
 
-      deleteProduct: (id) => {
-        set(state => ({ products: state.products.filter(p => p.id !== id) }));
-        saveAllProducts(useStore.getState().products);
+      deleteProduct: (id) =>
+        set(state => ({ products: state.products.filter(p => p.id !== id) })),
+
+      saveAllToFirestore: () => {
+        const state = useStore.getState();
+        saveAllProducts(state.products);
+        saveSettings(state.siteSettings);
       },
 
       addReview: (productId, review) =>

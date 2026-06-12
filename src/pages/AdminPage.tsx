@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
   BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
-  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw
+  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
 
@@ -45,7 +45,7 @@ const emptyProduct = {
 };
 
 export default function AdminPage() {
-  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, unreadOrderIds, markOrdersRead } = useStore();
+  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, unreadOrderIds, markOrdersRead, saveAllToFirestore } = useStore();
   const [productForm, setProductForm] = useState({ ...emptyProduct });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -193,6 +193,16 @@ export default function AdminPage() {
             )}
           </button>
         </div>
+        {/* Save Changes Button */}
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-cairo font-bold transition-all bg-green-600 text-white hover:bg-green-500"
+          >
+            <Save className="w-5 h-5" />
+            حفظ التغييرات
+          </button>
+        </div>
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-sm font-bold">
@@ -232,6 +242,16 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
+        {/* Floating Save Button (mobile) */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={() => { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); }}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg text-sm font-bold font-cairo hover:bg-green-500 transition-all"
+          >
+            <Save className="w-4 h-4" />
+            حفظ
+          </button>
+        </div>
         {/* Dashboard */}
         {adminSection === 'dashboard' && (
           <div className="space-y-6">
