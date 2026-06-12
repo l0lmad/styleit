@@ -110,7 +110,7 @@ export default function ShopPage() {
 
           {/* Category Tabs */}
           <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.filter(c => c.value === 'الكل' || products.some(p => p.category === c.value)).map(cat => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
