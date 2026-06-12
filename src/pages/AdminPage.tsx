@@ -620,20 +620,22 @@ export default function AdminPage() {
                       createdAt: c.createdAt,
                     })),
                   ];
-                  const BOM = '\uFEFF';
-                  const q = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+                  const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
                   const headers = ['الاسم', 'رقم الموبايل', 'البريد الإلكتروني', 'العنوان', 'المدينة', 'عدد الطلبات', 'إجمالي المشتريات', 'تاريخ التسجيل'];
                   const rows = allCustomers.map(c => [
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const sep = ';';
-                  const csv = BOM + 'sep=;\n' + headers.join(sep) + '\n' + rows.map(r => r.map(v => q(v)).join(sep)).join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                  const html = '<html><head><meta charset="UTF-8"></head><body>' +
+                    '<table border="1" style="font-family:Tahoma;font-size:12px;border-collapse:collapse" dir="rtl">' +
+                    '<tr style="background:#f97316;color:#fff">' + headers.map(h => '<th style="padding:8px">' + esc(h) + '</th>').join('') + '</tr>' +
+                    rows.map(r => '<tr>' + r.map(v => '<td style="padding:6px">' + esc(v) + '</td>').join('') + '</tr>').join('') +
+                    '</table></body></html>';
+                  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.download = `worka-customers-${new Date().toISOString().split('T')[0]}.xls`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير بيانات العملاء ✓');
@@ -742,16 +744,18 @@ export default function AdminPage() {
                         margin + '%',
                       ];
                     });
-                  const BOM = '\uFEFF';
-                  const q = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+                  const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
                   const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
-                  const sep = ';';
-                  const csv = BOM + 'sep=;\n' + headers.join(sep) + '\n' + reportRows.map(r => r.map(v => q(v)).join(sep)).join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                  const html = '<html><head><meta charset="UTF-8"></head><body>' +
+                    '<table border="1" style="font-family:Tahoma;font-size:12px;border-collapse:collapse" dir="rtl">' +
+                    '<tr style="background:#f97316;color:#fff">' + headers.map(h => '<th style="padding:8px">' + esc(h) + '</th>').join('') + '</tr>' +
+                    reportRows.map(r => '<tr>' + r.map(v => '<td style="padding:6px">' + esc(v) + '</td>').join('') + '</tr>').join('') +
+                    '</table></body></html>';
+                  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.xls`;
                   a.click();
                   URL.revokeObjectURL(url);
                   showNotification('تم تصدير التحليلات ✓');
