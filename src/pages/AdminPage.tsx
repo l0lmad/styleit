@@ -628,7 +628,7 @@ export default function AdminPage() {
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const html = '<html><head><meta charset="UTF-8"></head><body>' +
+                  const html = '\uFEFF<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta charset="UTF-8"></head><body>' +
                     '<table border="1" style="font-family:Tahoma;font-size:12px;border-collapse:collapse" dir="rtl">' +
                     '<tr style="background:#f97316;color:#fff">' + headers.map(h => '<th style="padding:8px">' + esc(h) + '</th>').join('') + '</tr>' +
                     rows.map(r => '<tr>' + r.map(v => '<td style="padding:6px">' + esc(v) + '</td>').join('') + '</tr>').join('') +
@@ -749,7 +749,7 @@ export default function AdminPage() {
                     });
                   const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
                   const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
-                  const html = '<html><head><meta charset="UTF-8"></head><body>' +
+                  const html = '\uFEFF<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta charset="UTF-8"></head><body>' +
                     '<table border="1" style="font-family:Tahoma;font-size:12px;border-collapse:collapse" dir="rtl">' +
                     '<tr style="background:#f97316;color:#fff">' + headers.map(h => '<th style="padding:8px">' + esc(h) + '</th>').join('') + '</tr>' +
                     reportRows.map(r => '<tr>' + r.map(v => '<td style="padding:6px">' + esc(v) + '</td>').join('') + '</tr>').join('') +
