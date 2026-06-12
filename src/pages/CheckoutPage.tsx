@@ -8,6 +8,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
   const [confirmedTotal, setConfirmedTotal] = useState(0);
+  const [orderItems, setOrderItems] = useState<{ product: { id: string; name: string; price: number; images: string[] }; quantity: number; size: string; color: string }[]>([]);
   const [form, setForm] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -55,6 +56,12 @@ export default function CheckoutPage() {
     });
     setOrderId(id);
     setConfirmedTotal(total);
+    setOrderItems(cart.map(i => ({
+      product: { id: i.product.id, name: i.product.name, price: i.product.price, images: i.product.images },
+      quantity: i.quantity,
+      size: i.size,
+      color: i.color,
+    })));
     clearCart();
     setStep('success');
     showNotification('تم تقديم طلبك بنجاح! 🎉');
@@ -84,19 +91,53 @@ export default function CheckoutPage() {
             <p className="text-sm font-bold text-pink-600 font-cairo mt-1">الإجمالي: {confirmedTotal.toLocaleString()} جنيه</p>
             <p className="text-xs text-gray-500 font-cairo mt-1">طريقة الدفع: {form.paymentMethod === 'cash' ? 'الدفع عند الاستلام' : form.paymentMethod === 'instapay' ? 'InstaPay' : 'فودافون كاش'}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setActivePage('orders')}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all"
+              >
+                <Package className="w-4 h-4" /> تتبع الطلب
+              </button>
+              <button
+                onClick={() => setActivePage('home')}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all"
+              >
+                الرئيسية
+              </button>
+            </div>
             <button
-              onClick={() => setActivePage('orders')}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all"
+              onClick={() => {
+                const orderData = {
+                  userId: '',
+                  userName: form.name,
+                  userEmail: form.email,
+                  items: orderItems,
+                  total: confirmedTotal,
+                  status: 'pending',
+                  address: `${form.address}, ${form.city}`,
+                  phone: form.phone,
+                  paymentMethod: form.paymentMethod,
+                };
+                navigator.clipboard.writeText(JSON.stringify(orderData));
+                showNotification('تم نسخ بيانات الطلب، أرسلها للمدير', 'info');
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-bold font-cairo text-sm hover:bg-blue-100 transition-all"
             >
-              <Package className="w-4 h-4" /> تتبع الطلب
+              📋 نسخ بيانات الطلب (أرسلها للمدير)
             </button>
-            <button
-              onClick={() => setActivePage('home')}
-              className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all"
-            >
-              الرئيسية
-            </button>
+            {siteSettings.whatsappNumber && (
+              <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد رقم ${orderId}
+العميل: ${form.name}
+العنوان: ${form.address}, ${form.city}
+التليفون: ${form.phone}
+الإجمالي: ${confirmedTotal} جنيه
+طريقة الدفع: ${form.paymentMethod === 'cash' ? 'كاش' : form.paymentMethod === 'instapay' ? 'InstaPay' : 'فودافون كاش'}`)}`} target="_blank" rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl font-bold font-cairo text-sm hover:bg-green-100 transition-all"
+              >
+                💬 أرسل الطلب عبر واتساب
+              </a>
+            )}
           </div>
         </motion.div>
       </div>

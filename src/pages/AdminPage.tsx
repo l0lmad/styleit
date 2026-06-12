@@ -52,6 +52,8 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState<Order['status'] | 'all'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importData, setImportData] = useState('');
   const [newColor, setNewColor] = useState('');
   const [newColorName, setNewColorName] = useState('');
 
@@ -429,18 +431,23 @@ export default function AdminPage() {
           <div className="space-y-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-2xl font-black text-gray-900 font-cairo">إدارة الطلبات</h1>
-              <button onClick={() => {
-                try {
-                  const stored = JSON.parse(localStorage.getItem('wara-wear-storage') || '{}');
-                  const newOrders = stored?.state?.orders;
-                  const newUnread = stored?.state?.unreadOrderIds;
-                  if (newOrders) useStore.setState({ orders: newOrders });
-                  if (newUnread) useStore.setState({ unreadOrderIds: newUnread });
-                  showNotification('تم تحديث الطلبات ✓');
-                } catch { showNotification('خطأ في التحديث', 'error'); }
-              }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all">
-                <RefreshCw className="w-4 h-4" /> تحديث
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => setShowImportModal(true)} className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl font-bold font-cairo text-sm hover:bg-green-100 transition-all">
+                  <Plus className="w-4 h-4" /> إضافة طلب
+                </button>
+                <button onClick={() => {
+                  try {
+                    const stored = JSON.parse(localStorage.getItem('wara-wear-storage') || '{}');
+                    const newOrders = stored?.state?.orders;
+                    const newUnread = stored?.state?.unreadOrderIds;
+                    if (newOrders) useStore.setState({ orders: newOrders });
+                    if (newUnread) useStore.setState({ unreadOrderIds: newUnread });
+                    showNotification('تم تحديث الطلبات ✓');
+                  } catch { showNotification('خطأ في التحديث', 'error'); }
+                }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all">
+                  <RefreshCw className="w-4 h-4" /> تحديث
+                </button>
+              </div>
             </div>
             {/* Filter */}
             <div className="flex gap-2 flex-wrap">
@@ -730,6 +737,47 @@ export default function AdminPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showImportModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowImportModal(false)}>
+            <div className="bg-white rounded-2xl p-6 max-w-lg w-full" onClick={e => e.stopPropagation()}>
+              <h2 className="text-xl font-black text-gray-900 font-cairo mb-4">إضافة طلب جديد</h2>
+              <p className="text-sm text-gray-500 font-cairo mb-3">الصق بيانات الطلب (JSON) الذي نسخته من العميل:</p>
+              <textarea value={importData} onChange={e => setImportData(e.target.value)} rows={8}
+                className="w-full border border-gray-200 rounded-xl p-3 font-cairo text-sm text-gray-700 resize-none focus:outline-none focus:border-pink-300" placeholder='{"userName":"...","items":[...],"total":...,"phone":"...","address":"..."}' />
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => {
+                  try {
+                    const data = JSON.parse(importData);
+                    const id = `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+                    const order = {
+                      id,
+                      userId: data.userId || '',
+                      userName: data.userName || '',
+                      userEmail: data.userEmail || '',
+                      items: data.items || [],
+                      total: data.total || 0,
+                      status: data.status || 'pending',
+                      address: data.address || '',
+                      phone: data.phone || '',
+                      paymentMethod: data.paymentMethod || 'cash',
+                      createdAt: new Date().toISOString(),
+                    };
+                    useStore.setState(s => ({ orders: [...s.orders, order], unreadOrderIds: [...s.unreadOrderIds, id] }));
+                    setShowImportModal(false);
+                    setImportData('');
+                    showNotification('تم إضافة الطلب ✓');
+                  } catch { showNotification('بيانات غير صالحة', 'error'); }
+                }} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all">
+                  إضافة الطلب
+                </button>
+                <button onClick={() => { setShowImportModal(false); setImportData(''); }} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold font-cairo text-sm hover:bg-gray-200 transition-all">
+                  إلغاء
+                </button>
               </div>
             </div>
           </div>
