@@ -13,7 +13,7 @@ const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; ico
 };
 
 export default function OrdersPage() {
-  const { orders, currentUser, setActivePage } = useStore();
+  const { orders, currentUser, setActivePage, siteSettings } = useStore();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [phoneQuery, setPhoneQuery] = useState('');
   const [searched, setSearched] = useState(false);
@@ -86,6 +86,12 @@ export default function OrdersPage() {
               <button onClick={() => setActivePage('shop')} className="px-6 py-2.5 bg-pink-500 text-white rounded-xl font-cairo font-bold hover:bg-pink-600 transition-all">
                 تسوق الآن
               </button>
+            </div>
+          )}
+
+          {searched && !currentUser && siteSettings.orderTrackingMessage && (
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl p-5 mb-6 shadow-lg">
+              <p className="text-sm font-cairo leading-relaxed">{siteSettings.orderTrackingMessage}</p>
             </div>
           )}
 

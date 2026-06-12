@@ -1,10 +1,14 @@
-import { doc, getDoc, setDoc, collection, onSnapshot, query } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Order } from '../store/useStore';
 
 export async function saveOrderToFirestore(order: Order): Promise<void> {
   const docRef = doc(db, 'orders', order.id);
   await setDoc(docRef, order);
+}
+
+export async function deleteOrderFromFirestore(orderId: string): Promise<void> {
+  await deleteDoc(doc(db, 'orders', orderId));
 }
 
 export async function saveUnreadIdsToFirestore(ids: string[]): Promise<void> {

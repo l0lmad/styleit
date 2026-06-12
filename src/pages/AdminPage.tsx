@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
   Edit2, Trash2, Search, Check, X, AlertTriangle,
   BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
-  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save
+  Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save, Download
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
 
@@ -45,7 +45,7 @@ const emptyProduct = {
 };
 
 export default function AdminPage() {
-  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, unreadOrderIds, markOrdersRead, saveAllToFirestore } = useStore();
+  const { adminSection, setAdminSection, setActivePage, products, orders, users, customers, addProduct, updateProduct, deleteProduct, updateOrderStatus, showNotification, currentUser, siteSettings, updateSiteSettings, unreadOrderIds, markOrdersRead, saveAllToFirestore, deleteCustomer, deleteOrder } = useStore();
   const [productForm, setProductForm] = useState({ ...emptyProduct });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -505,6 +505,12 @@ export default function AdminPage() {
                           <option key={key} value={key}>{label}</option>
                         ))}
                       </select>
+                      <button
+                        onClick={e => { e.stopPropagation(); if (window.confirm(`حذف الطلب ${order.id}؟`)) { deleteOrder(order.id); showNotification('تم حذف الطلب', 'info'); } }}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                       <p className="font-black text-lg font-cairo">{order.total.toLocaleString()} ج</p>
                     </div>
                   </div>
@@ -590,7 +596,7 @@ export default function AdminPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      {['الاسم', 'رقم الموبايل', 'البريد', 'العنوان', 'المدينة', 'الطلبات', 'المشتريات', 'تاريخ التسجيل'].map(h => (
+                      {['الاسم', 'رقم الموبايل', 'البريد', 'العنوان', 'المدينة', 'الطلبات', 'المشتريات', 'تاريخ التسجيل', 'إجراءات'].map(h => (
                         <th key={h} className="text-right px-4 py-3 text-xs font-bold text-gray-500 font-cairo whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -606,6 +612,19 @@ export default function AdminPage() {
                         <td className="px-4 py-3"><span className="text-xs font-bold font-cairo bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{orders.filter(o => o.userId === u.id).length}</span></td>
                         <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => o.userId === u.id && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
                         <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{u.createdAt}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`حذف العميل ${u.name}؟`)) {
+                                useStore.setState(s => ({ users: s.users.filter(x => x.id !== u.id) }));
+                                showNotification('تم حذف العميل', 'info');
+                              }
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                     {customers.map((c, i) => (
@@ -618,10 +637,23 @@ export default function AdminPage() {
                         <td className="px-4 py-3"><span className="text-xs font-bold font-cairo bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{c.orders.length}</span></td>
                         <td className="px-4 py-3 text-sm font-bold font-cairo text-green-600">{orders.filter(o => c.orders.includes(o.id) && o.status === 'delivered').reduce((a, o) => a + o.total, 0).toLocaleString()} ج</td>
                         <td className="px-4 py-3 text-sm text-gray-400 font-cairo">{c.createdAt}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`حذف العميل ${c.name}؟`)) {
+                                deleteCustomer(c.phone);
+                                showNotification('تم حذف العميل', 'info');
+                              }
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                     {users.filter(u => u.role === 'customer').length === 0 && customers.length === 0 && (
-                      <tr><td colSpan={8} className="text-center text-gray-400 font-cairo py-10">لا يوجد عملاء حتى الآن</td></tr>
+                      <tr><td colSpan={9} className="text-center text-gray-400 font-cairo py-10">لا يوجد عملاء حتى الآن</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -636,7 +668,35 @@ export default function AdminPage() {
         {/* Analytics */}
         {adminSection === 'analytics' && (
           <div className="space-y-6">
-            <h1 className="text-2xl font-black text-gray-900 font-cairo">التحليلات والإحصائيات</h1>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h1 className="text-2xl font-black text-gray-900 font-cairo">التحليلات والإحصائيات</h1>
+              <button
+                onClick={() => {
+                  const reportRows = products
+                    .map(p => {
+                      const unitsSold = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.quantity, 0);
+                      const revenue = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.product.price * i.quantity, 0);
+                      const cost = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0);
+                      return [p.name, p.category, unitsSold.toString(), revenue.toLocaleString(), Math.round(cost).toLocaleString(), (revenue - cost).toLocaleString()];
+                    });
+                  const BOM = '\uFEFF';
+                  const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح'];
+                  const csv = BOM + headers.join(',') + '\n' + reportRows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `worka-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  showNotification('تم تصدير التحليلات ✓');
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200"
+              >
+                <Download className="w-4 h-4" />
+                تصدير Excel
+              </button>
+            </div>
 
             {/* Profit Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1280,6 +1340,20 @@ export default function AdminPage() {
                   <p className="text-xs text-gray-400 font-cairo mt-1">رقم واتساب اللي هيبعت عليه العميل إثبات الدفع</p>
                 </div>
               </div>
+            </div>
+
+            {/* Order Tracking Message */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-pink-500" /> رسالة تتبع الطلب
+              </h2>
+              <p className="text-sm text-gray-500 font-cairo mb-3">هذه الرسالة تظهر للعميل عند تتبع طلبه برقم الموبايل</p>
+              <textarea
+                value={siteSettings.orderTrackingMessage || ''}
+                onChange={e => updateSiteSettings({ orderTrackingMessage: e.target.value })}
+                rows={3}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
+              />
             </div>
 
             {/* Visibility Toggles */}

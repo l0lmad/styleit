@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { saveSettings } from '../lib/settingsService';
-import { saveOrderToFirestore, saveUnreadIdsToFirestore } from '../lib/ordersService';
+import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestore } from '../lib/ordersService';
 import { saveAllProducts } from '../lib/productsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
@@ -106,6 +106,7 @@ export interface SiteSettings {
   instapayAccount: string;
   vodafoneAccount: string;
   whatsappNumber: string;
+  orderTrackingMessage: string;
 }
 
 export const COLOR_NAMES: Record<string, string> = {
@@ -200,6 +201,8 @@ interface StoreState {
   updateSiteSettings: (settings: Partial<SiteSettings>) => void;
   customers: Customer[];
   saveCustomer: (info: Customer) => void;
+  deleteCustomer: (phone: string) => void;
+  deleteOrder: (orderId: string) => void;
 }
 
 const sampleProducts: Product[] = [
@@ -447,6 +450,7 @@ export const useStore = create<StoreState>()(
         instapayAccount: 'instapay@warawear.com',
         vodafoneAccount: '01000000000',
         whatsappNumber: '01000000000',
+        orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
       },
 
       login: (email, password) => {
@@ -643,11 +647,43 @@ export const useStore = create<StoreState>()(
           return { customers: [...state.customers, info] };
         });
       },
+
+      deleteCustomer: (phone) => {
+        set(state => ({
+          customers: state.customers.filter(c => c.phone !== phone),
+        }));
+      },
+
+      deleteOrder: (orderId) => {
+        set(state => ({
+          orders: state.orders.filter(o => o.id !== orderId),
+          users: state.users.map(u => ({
+            ...u,
+            orders: u.orders.filter(id => id !== orderId),
+          })),
+          unreadOrderIds: state.unreadOrderIds.filter(id => id !== orderId),
+          currentUser: state.currentUser
+            ? {
+                ...state.currentUser,
+                orders: state.currentUser.orders.filter(id => id !== orderId),
+              }
+            : null,
+        }));
+        deleteOrderFromFirestore(orderId);
+        const remaining = useStore.getState().unreadOrderIds;
+        saveUnreadIdsToFirestore(remaining);
+      },
     }),
     {
       name: 'wara-wear-storage',
-      version: 3,
+      version: 4,
       migrate: (persisted: any) => {
+        if (!persisted.siteSettings?.orderTrackingMessage) {
+          persisted.siteSettings = {
+            ...persisted.siteSettings,
+            orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
+          };
+        }
         if (!persisted.siteSettings?.footerQuickLinks) {
           persisted.siteSettings = {
             ...persisted.siteSettings,
