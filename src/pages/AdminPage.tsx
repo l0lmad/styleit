@@ -74,7 +74,7 @@ export default function AdminPage() {
 
   const handleUpdateSettings = (settings: Partial<typeof siteSettings>) => {
     markUnsaved();
-    handleUpdateSettings(settings);
+    updateSiteSettings(settings);
   };
 
   const handleAddProduct = (product: Product) => { markUnsaved(); addProduct(product); };
