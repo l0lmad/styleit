@@ -72,7 +72,7 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-cairo mb-6"
             >
               <Zap className="w-4 h-4 text-yellow-300" />
-              🔥 تخفيضات الموسم - حتى 50% خصم
+              {siteSettings.heroBadge}
             </motion.span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-cairo leading-tight mb-6">
               {siteSettings.heroTitle}<br />

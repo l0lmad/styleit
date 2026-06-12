@@ -1065,8 +1065,13 @@ export default function AdminPage() {
                 const admin = useStore.getState().users.find(u => u.role === 'admin');
                 if (!admin) return null;
                 return (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص الشارة (يظهر فوق العنوان)</label>
+                  <input value={siteSettings.heroBadge} onChange={e => handleUpdateSettings({ heroBadge: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                </div>
+                <div>
                       <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">صورة المدير (رابط)</label>
                       <input defaultValue={admin.avatar || ''} onBlur={e => {
                         const v = e.target.value.trim();
@@ -1112,6 +1117,11 @@ export default function AdminPage() {
                 <Settings className="w-5 h-5 text-pink-500" /> محتوى الهيرو
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص الشارة (يظهر فوق العنوان)</label>
+                  <input value={siteSettings.heroBadge} onChange={e => handleUpdateSettings({ heroBadge: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">العنوان الرئيسي</label>
                   <input value={siteSettings.heroTitle} onChange={e => handleUpdateSettings({ heroTitle: e.target.value })}

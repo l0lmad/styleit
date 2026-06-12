@@ -76,6 +76,7 @@ export interface User {
 
 export interface SiteSettings {
   heroTitle: string;
+  heroBadge: string;
   heroSubtitle: string;
   heroBtnText: string;
   heroBtn2Text: string;
@@ -403,6 +404,7 @@ export const useStore = create<StoreState>()(
       productsUpdatedAt: 0,
       siteSettings: {
         heroTitle: 'أحدث صيحات الموضة في مكان واحد',
+        heroBadge: '🔥 تخفيضات الموسم - حتى 50% خصم',
         heroSubtitle: 'تشكيلة واسعة من الملابس العصرية والإكسسوارات الفاخرة بأفضل الأسعار',
         heroBtnText: 'تسوق الآن',
         heroBtn2Text: 'تعرف علينا',
@@ -679,8 +681,14 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'wara-wear-storage',
-      version: 4,
+      version: 5,
       migrate: (persisted: any) => {
+        if (!persisted.siteSettings?.heroBadge) {
+          persisted.siteSettings = {
+            ...persisted.siteSettings,
+            heroBadge: '🔥 تخفيضات الموسم - حتى 50% خصم',
+          };
+        }
         if (!persisted.siteSettings?.orderTrackingMessage) {
           persisted.siteSettings = {
             ...persisted.siteSettings,
