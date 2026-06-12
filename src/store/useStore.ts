@@ -388,7 +388,7 @@ export const useStore = create<StoreState>()(
     (set, get) => ({
       currentUser: null,
       users: defaultUsers,
-      products: sampleProducts,
+      products: [],
       cart: [],
       orders: [],
       unreadOrderIds: [],

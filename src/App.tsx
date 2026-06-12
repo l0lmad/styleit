@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds } from './lib/ordersService';
-import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
+import { loadAllProducts, listenProducts } from './lib/productsService';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import Notification from './components/Notification';
@@ -56,14 +56,11 @@ export default function App() {
     });
   }, []);
 
-  // Load products from Firestore on mount (seed from localStorage if empty)
+  // Load products from Firestore on mount
   useEffect(() => {
     loadAllProducts().then((remoteProducts) => {
-      const local = useStore.getState().products;
       if (remoteProducts && remoteProducts.length > 0) {
         useStore.setState({ products: remoteProducts });
-      } else if (local.length > 0) {
-        saveAllProducts(local);
       }
     });
   }, []);
