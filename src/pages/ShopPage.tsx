@@ -29,7 +29,7 @@ export default function ShopPage() {
     let list = [...products];
     if (selectedCategory !== 'الكل') list = list.filter(p => p.category === selectedCategory);
     if (searchQuery) list = list.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    list = list.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    list = list.filter(p => p.stock > 0 && p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (selectedSizes.length > 0) list = list.filter(p => p.sizes.some(s => selectedSizes.includes(s)));
     if (onSaleOnly) list = list.filter(p => p.oldPrice);
     if (newOnly) list = list.filter(p => p.newArrival);
@@ -110,7 +110,7 @@ export default function ShopPage() {
 
           {/* Category Tabs */}
           <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
-            {CATEGORIES.filter(c => c.value === 'الكل' || products.some(p => p.category === c.value)).map(cat => (
+            {CATEGORIES.filter(c => c.value === 'الكل' || products.some(p => p.category === c.value && p.stock > 0)).map(cat => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}

@@ -609,6 +609,10 @@ export const useStore = create<StoreState>()(
         });
         saveOrderToFirestore(newOrder);
         saveUnreadIdsToFirestore([...useStore.getState().unreadOrderIds, id]);
+        const prods = useStore.getState().products;
+        const ts = Date.now();
+        useStore.setState({ productsUpdatedAt: ts });
+        saveAllProducts(prods);
         return id;
       },
 
