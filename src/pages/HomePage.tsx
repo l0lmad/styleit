@@ -9,7 +9,7 @@ export default function HomePage() {
 
   const heroSlides = useMemo(() => {
     const slides = products
-      .filter(p => p.images.length > 0)
+      .filter(p => p.images.length > 0 && p.stock > 0)
       .flatMap(p => p.images.map(url => ({ url, productId: p.id, productName: p.name, productPrice: p.price, productOldPrice: p.oldPrice })));
     for (let i = slides.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -34,15 +34,15 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [heroSlides.length]);
 
-  const featured = products.filter(p => p.featured).slice(0, 4);
-  const newArrivals = products.filter(p => p.newArrival).slice(0, 4);
+  const featured = products.filter(p => p.featured && p.stock > 0).slice(0, 4);
+  const newArrivals = products.filter(p => p.newArrival && p.stock > 0).slice(0, 4);
 
   const categories = [
-    { name: 'رجالي', emoji: '👔', color: 'from-blue-400 to-blue-600', count: products.filter(p => p.category === 'رجالي').length },
-    { name: 'حريمي', emoji: '👗', color: 'from-pink-400 to-pink-600', count: products.filter(p => p.category === 'حريمي').length },
-    { name: 'أطفال', emoji: '🧒', color: 'from-yellow-400 to-orange-500', count: products.filter(p => p.category === 'أطفال').length },
-    { name: 'رياضي', emoji: '🏋️', color: 'from-green-400 to-emerald-600', count: products.filter(p => p.category === 'رياضي').length },
-    { name: 'اكسسوارات', emoji: '👜', color: 'from-purple-400 to-purple-600', count: products.filter(p => p.category === 'اكسسوارات').length },
+    { name: 'رجالي', emoji: '👔', color: 'from-blue-400 to-blue-600', count: products.filter(p => p.category === 'رجالي' && p.stock > 0).length },
+    { name: 'حريمي', emoji: '👗', color: 'from-pink-400 to-pink-600', count: products.filter(p => p.category === 'حريمي' && p.stock > 0).length },
+    { name: 'أطفال', emoji: '🧒', color: 'from-yellow-400 to-orange-500', count: products.filter(p => p.category === 'أطفال' && p.stock > 0).length },
+    { name: 'رياضي', emoji: '🏋️', color: 'from-green-400 to-emerald-600', count: products.filter(p => p.category === 'رياضي' && p.stock > 0).length },
+    { name: 'اكسسوارات', emoji: '👜', color: 'from-purple-400 to-purple-600', count: products.filter(p => p.category === 'اكسسوارات' && p.stock > 0).length },
   ];
 
   const featuresMap: Record<string, { icon: React.ReactNode; color: string }> = {
