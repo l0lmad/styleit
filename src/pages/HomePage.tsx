@@ -1,11 +1,33 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Truck, Shield, HeadphonesIcon, TrendingUp, Tag, Zap } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 
 export default function HomePage() {
   const { products, setActivePage, setSelectedCategory, siteSettings } = useStore();
+
+  const heroImages = useMemo(() => {
+    const imgs = siteSettings.heroImages.filter(Boolean);
+    return imgs.length > 0 ? imgs : [
+      'https://images.pexels.com/photos/8311880/pexels-photo-8311880.jpeg?auto=compress&cs=tinysrgb&w=400',
+      'https://images.pexels.com/photos/8386666/pexels-photo-8386666.jpeg?auto=compress&cs=tinysrgb&w=400',
+    ];
+  }, [siteSettings.heroImages]);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  useEffect(() => {
+    if (currentImageIndex >= heroImages.length) {
+      setCurrentImageIndex(0);
+    }
+  }, [heroImages.length, currentImageIndex]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   const featured = products.filter(p => p.featured).slice(0, 4);
   const newArrivals = products.filter(p => p.newArrival).slice(0, 4);
@@ -77,20 +99,35 @@ export default function HomePage() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(siteSettings.heroImages.filter(Boolean).length > 0 ? siteSettings.heroImages.filter(Boolean) : [
-                'https://images.pexels.com/photos/8311880/pexels-photo-8311880.jpeg?auto=compress&cs=tinysrgb&w=400',
-                'https://images.pexels.com/photos/8386666/pexels-photo-8386666.jpeg?auto=compress&cs=tinysrgb&w=400',
-              ]).slice(0, 2).map((src, idx) => (
-                <motion.div
-                  key={idx}
-                  animate={{ y: idx === 0 ? [0, -10, 0] : [0, 10, 0] }}
-                  transition={{ repeat: Infinity, duration: 4, delay: idx * 0.5 }}
-                  className={`rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl ${idx === 0 ? 'sm:mt-10' : 'sm:mb-10'}`}
-                >
-                  <img src={src} alt="" className="w-full h-44 sm:h-56 object-cover" />
-                </motion.div>
-              ))}
+            <div className="relative z-10">
+              <AnimatePresence mode="wait">
+                {heroImages.length > 0 && (
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.5 }}
+                    className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl"
+                  >
+                    <img src={heroImages[currentImageIndex]} alt="" className="w-full h-56 sm:h-72 md:h-96 object-cover" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {/* Dots */}
+              {heroImages.length > 1 && (
+                <div className="flex justify-center gap-2 mt-4" dir="ltr">
+                  {heroImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentImageIndex(idx)}
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
