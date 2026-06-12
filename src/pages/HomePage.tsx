@@ -113,14 +113,14 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
+                    className="rounded-3xl md:rounded-[2rem] overflow-hidden shadow-2xl cursor-pointer ring-2 ring-white/30 hover:ring-white/50 transition-all"
                     onClick={() => setActivePage(`product-${heroSlides[currentSlideIndex]?.productId}`)}
                   >
-                    <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-56 sm:h-72 md:h-96 object-cover" />
+                    <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-64 sm:h-80 md:h-[28rem] object-cover" />
                     {heroSlides[currentSlideIndex] && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <p className="text-white font-bold font-cairo text-lg">{heroSlides[currentSlideIndex].productName}</p>
-                        <p className="text-white/80 font-cairo text-sm">{heroSlides[currentSlideIndex].productPrice.toLocaleString()} جنيه</p>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
+                        <p className="text-white font-bold font-cairo text-xl md:text-2xl">{heroSlides[currentSlideIndex].productName}</p>
+                        <p className="text-white/80 font-cairo text-base md:text-lg">{heroSlides[currentSlideIndex].productPrice.toLocaleString()} جنيه</p>
                       </div>
                     )}
                   </motion.div>
