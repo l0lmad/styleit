@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { saveSettings } from '../lib/settingsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
@@ -603,8 +604,10 @@ export const useStore = create<StoreState>()(
         setTimeout(() => set({ notification: null }), 3000);
       },
 
-      updateSiteSettings: (settings) =>
-        set(state => ({ siteSettings: { ...state.siteSettings, ...settings } })),
+      updateSiteSettings: (settings) => {
+        set(state => ({ siteSettings: { ...state.siteSettings, ...settings } }));
+        saveSettings(settings);
+      },
 
       saveCustomer: (info) => {
         set(state => {

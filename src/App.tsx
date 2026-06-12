@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
+import { loadSettings, subscribeSettings } from './lib/settingsService';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import Notification from './components/Notification';
@@ -21,6 +22,23 @@ export default function App() {
     root.style.setProperty('--primary', siteSettings.primaryColor);
     root.style.setProperty('--secondary', siteSettings.secondaryColor);
   }, [siteSettings.primaryColor, siteSettings.secondaryColor]);
+
+  // Load settings from Firestore on mount
+  useEffect(() => {
+    loadSettings().then((remote) => {
+      if (remote) {
+        useStore.setState({ siteSettings: { ...siteSettings, ...remote } });
+      }
+    });
+  }, []);
+
+  // Real-time sync: listen for Firestore changes from other devices
+  useEffect(() => {
+    const unsub = subscribeSettings((remote) => {
+      useStore.setState({ siteSettings: { ...useStore.getState().siteSettings, ...remote } });
+    });
+    return unsub;
+  }, []);
 
   // Cross-tab sync: listen for localStorage changes from other tabs
   useEffect(() => {
