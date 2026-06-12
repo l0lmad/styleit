@@ -626,7 +626,7 @@ export default function AdminPage() {
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const csv = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                  const csv = BOM + 'sep=,\n' + headers.join(',') + '\n' + rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
                   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -728,11 +728,21 @@ export default function AdminPage() {
                       const unitsSold = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.quantity, 0);
                       const revenue = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + i.product.price * i.quantity, 0);
                       const cost = orders.flatMap(o => o.items).filter(i => i.product.id === p.id).reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0);
-                      return [p.name, p.category, unitsSold.toString(), revenue.toLocaleString(), Math.round(cost).toLocaleString(), (revenue - cost).toLocaleString()];
+                      const profit = revenue - cost;
+                      const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0';
+                      return [
+                        p.name,
+                        p.category,
+                        unitsSold.toString(),
+                        Math.round(revenue).toString(),
+                        Math.round(cost).toString(),
+                        Math.round(profit).toString(),
+                        margin + '%',
+                      ];
                     });
                   const BOM = '\uFEFF';
-                  const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح'];
-                  const csv = BOM + headers.join(',') + '\n' + reportRows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                  const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
+                  const csv = BOM + 'sep=,\n' + headers.join(',') + '\n' + reportRows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
                   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
