@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Clock, Truck, CheckCircle, XCircle, ShoppingBag, X, Search } from 'lucide-react';
 import { useStore, Order, getColorLabel } from '../store/useStore';
 import { ReactNode } from 'react';
+import { loadAllOrdersFromFirestore } from '../lib/ordersService';
 
 const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; icon: ReactNode; bg: string }> = {
   pending: { label: 'في الانتظار', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200', icon: <Clock className="w-4 h-4 text-yellow-500" /> },
@@ -17,6 +18,12 @@ export default function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [phoneQuery, setPhoneQuery] = useState('');
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    loadAllOrdersFromFirestore().then((remote) => {
+      if (remote.length > 0) useStore.setState({ orders: remote });
+    });
+  }, []);
 
   const myOrders = orders.filter(o =>
     currentUser

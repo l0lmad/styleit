@@ -627,10 +627,14 @@ export default function AdminPage() {
                     c.name, c.phone, c.email, c.address, c.city,
                     c.ordersCount.toString(), c.totalSpent.toString(), c.createdAt,
                   ]);
-                  const html = `<table>
-                    <thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
-                    <tbody>${rows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border:1px solid #ddd;text-align:center">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
-                  </table>`;
+                  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>العملاء</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body>
+<table style="font-family:Tahoma,Arial;font-size:12px;border-collapse:collapse">
+<thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
+<tbody>${rows.map(r => `<tr>${r.map((v, ci) => `<td style="padding:6px;border:1px solid #ddd;text-align:center;${ci >= 5 ? 'mso-number-format:\\#\\,\\#\\#0' : ''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+</table>
+</body></html>`;
                   const blob = new Blob([BOM + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -747,10 +751,14 @@ export default function AdminPage() {
                   const BOM = '\uFEFF';
                   const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                   const headers = ['المنتج', 'الفئة', 'الوحدات المباعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'نسبة الربح'];
-                  const html = `<table>
-                    <thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
-                    <tbody>${reportRows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border:1px solid #ddd;text-align:center">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
-                  </table>`;
+                  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>تقرير</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body>
+<table style="font-family:Tahoma,Arial;font-size:12px;border-collapse:collapse">
+<thead><tr>${headers.map(h => `<th style="padding:8px;border:1px solid #ccc;background:#f97316;color:#fff;font-weight:bold;text-align:center">${esc(h)}</th>`).join('')}</tr></thead>
+<tbody>${reportRows.map(r => `<tr style="${r[6] === '0%' || (parseFloat(r[6]) < 0) ? 'background:#fff0f0' : ''}">${r.map((v, ci) => `<td style="padding:6px;border:1px solid #ddd;text-align:center;${ci >= 2 ? 'mso-number-format:\\#\\,\\#\\#0' : ''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+</table>
+</body></html>`;
                   const blob = new Blob([BOM + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');

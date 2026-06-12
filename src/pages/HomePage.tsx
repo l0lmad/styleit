@@ -10,7 +10,7 @@ export default function HomePage() {
   const heroSlides = useMemo(() => {
     const slides = products
       .filter(p => p.images.length > 0)
-      .flatMap(p => p.images.map(url => ({ url, productId: p.id, productName: p.name, productPrice: p.price })));
+      .flatMap(p => p.images.map(url => ({ url, productId: p.id, productName: p.name, productPrice: p.price, productOldPrice: p.oldPrice })));
     for (let i = slides.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [slides[i], slides[j]] = [slides[j], slides[i]];
@@ -120,7 +120,17 @@ export default function HomePage() {
                     {heroSlides[currentSlideIndex] && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
                         <p className="text-white font-bold font-cairo text-xl md:text-2xl">{heroSlides[currentSlideIndex].productName}</p>
-                        <p className="text-white/80 font-cairo text-base md:text-lg">{heroSlides[currentSlideIndex].productPrice.toLocaleString()} جنيه</p>
+                        <p className="text-white/80 font-cairo text-base md:text-lg mt-1">
+                          {heroSlides[currentSlideIndex].productOldPrice && (
+                            <span className="line-through text-white/50 ml-2">{heroSlides[currentSlideIndex].productOldPrice.toLocaleString()} ج</span>
+                          )}
+                          <span className="font-bold">{heroSlides[currentSlideIndex].productPrice.toLocaleString()} ج</span>
+                          {heroSlides[currentSlideIndex].productOldPrice && (
+                            <span className="mr-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                              -{Math.round((1 - heroSlides[currentSlideIndex].productPrice / heroSlides[currentSlideIndex].productOldPrice) * 100)}%
+                            </span>
+                          )}
+                        </p>
                       </div>
                     )}
                   </motion.div>
