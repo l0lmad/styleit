@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
@@ -57,6 +57,37 @@ export default function AdminPage() {
   const [newColor, setNewColor] = useState('');
   const [newColorName, setNewColorName] = useState('');
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
+
+  const hasUnsavedRef = useRef(false);
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+
+  const markUnsaved = () => { hasUnsavedRef.current = true; };
+
+  const handleUpdateSettings = (settings: Partial<typeof siteSettings>) => {
+    markUnsaved();
+    handleUpdateSettings(settings);
+  };
+
+  const handleAddProduct = (product: Product) => { markUnsaved(); addProduct(product); };
+  const handleUpdateProduct = (product: Product) => { markUnsaved(); updateProduct(product); };
+  const handleDeleteProduct = (id: string) => { markUnsaved(); deleteProduct(id); };
+
+  const handleSaveAll = () => {
+    if (window.confirm('هل تريد حفظ التعديلات؟')) {
+      saveAllToFirestore();
+      showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success');
+      hasUnsavedRef.current = false;
+    }
+  };
   const analyticsFilteredOrders = useMemo(() => {
     if (analyticsPeriod === 'all') return orders;
     const now = new Date();
@@ -95,7 +126,7 @@ export default function AdminPage() {
       return;
     }
     if (editingProductId) {
-      updateProduct({
+      handleUpdateProduct({
         ...productForm,
         id: editingProductId,
         rating: products.find(p => p.id === editingProductId)?.rating || 0,
@@ -104,7 +135,7 @@ export default function AdminPage() {
       } as Product);
       showNotification('تم تحديث المنتج بنجاح ✓');
     } else {
-      addProduct({
+      handleAddProduct({
         ...productForm,
         id: `prod-${Date.now()}`,
         rating: 0,
@@ -162,7 +193,7 @@ export default function AdminPage() {
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div>
-              <p className="font-black font-cairo text-lg cursor-pointer hover:text-pink-400 transition-colors" onClick={() => setActivePage('shop')}>Wara Wear</p>
+              <p className="font-black font-cairo text-lg cursor-pointer hover:text-pink-400 transition-colors" onClick={() => { if (!hasUnsavedRef.current || window.confirm('لديك تغييرات غير محفوظة. هل تريد الخروج؟')) { setActivePage('shop'); } }}>Wara Wear</p>
               <p className="text-xs text-gray-400 font-cairo">لوحة التحكم</p>
             </div>
           </div>
@@ -209,16 +240,6 @@ export default function AdminPage() {
             )}
           </button>
         </div>
-        {/* Save Changes Button */}
-        <div className="px-4 pb-2">
-          <button
-            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-cairo font-bold transition-all bg-green-600 text-white hover:bg-green-500"
-          >
-            <Save className="w-5 h-5" />
-            حفظ التغييرات
-          </button>
-        </div>
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-sm font-bold">
@@ -258,16 +279,14 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
-        {/* Floating Save Button (mobile) */}
-        <div className="md:hidden fixed top-4 left-4 z-50">
-          <button
-            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg text-sm font-bold font-cairo hover:bg-green-500 transition-all"
-          >
-            <Save className="w-4 h-4" />
-            حفظ
-          </button>
-        </div>
+        {/* Floating Save Button (all screens) */}
+        <button
+          onClick={handleSaveAll}
+          className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-bold font-cairo hover:bg-green-500 transition-all"
+        >
+          <Save className="w-4 h-4" />
+          حفظ التغييرات
+        </button>
         {/* Dashboard */}
         {adminSection === 'dashboard' && (
           <div className="space-y-6">
@@ -392,6 +411,7 @@ export default function AdminPage() {
                       useStore.setState({ products: [], productsUpdatedAt: Date.now() });
                       useStore.getState().saveAllToFirestore();
                       showNotification('تم حذف جميع المنتجات ✓');
+                      hasUnsavedRef.current = false;
                     }
                   }}
                   className="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-red-600 transition-all shadow-lg shadow-red-200"
@@ -458,7 +478,7 @@ export default function AdminPage() {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => { if (window.confirm('هتحذف المنتج ده؟')) { deleteProduct(p.id); showNotification('تم حذف المنتج', 'info'); } }}
+                              onClick={() => { if (window.confirm('هتحذف المنتج ده؟')) { handleDeleteProduct(p.id); showNotification('تم حذف المنتج', 'info'); } }}
                               className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -923,7 +943,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-2xl font-black text-gray-900 font-cairo">معرض الصور</h1>
               <button
-                onClick={() => updateSiteSettings({ heroImages: [...siteSettings.heroImages, ''] })}
+                onClick={() => handleUpdateSettings({ heroImages: [...siteSettings.heroImages, ''] })}
                 className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
               >
                 <Plus className="w-4 h-4" />
@@ -949,7 +969,7 @@ export default function AdminPage() {
                         onClick={() => {
                           const imgs = [...siteSettings.heroImages];
                           if (idx > 0) { [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]]; }
-                          updateSiteSettings({ heroImages: imgs });
+                          handleUpdateSettings({ heroImages: imgs });
                         }}
                         disabled={idx === 0}
                         className={`p-1 rounded-lg transition-all ${idx === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
@@ -961,7 +981,7 @@ export default function AdminPage() {
                         onClick={() => {
                           const imgs = [...siteSettings.heroImages];
                           if (idx < imgs.length - 1) { [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]]; }
-                          updateSiteSettings({ heroImages: imgs });
+                          handleUpdateSettings({ heroImages: imgs });
                         }}
                         disabled={idx === siteSettings.heroImages.length - 1}
                         className={`p-1 rounded-lg transition-all ${idx === siteSettings.heroImages.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
@@ -982,7 +1002,7 @@ export default function AdminPage() {
                         onChange={e => {
                           const imgs = [...siteSettings.heroImages];
                           imgs[idx] = e.target.value;
-                          updateSiteSettings({ heroImages: imgs });
+                          handleUpdateSettings({ heroImages: imgs });
                         }}
                         placeholder="https://example.com/image.jpg"
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300"
@@ -992,7 +1012,7 @@ export default function AdminPage() {
                     {siteSettings.heroImages.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => updateSiteSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
+                        onClick={() => handleUpdateSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
                         className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1094,22 +1114,22 @@ export default function AdminPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">العنوان الرئيسي</label>
-                  <input value={siteSettings.heroTitle} onChange={e => updateSiteSettings({ heroTitle: e.target.value })}
+                  <input value={siteSettings.heroTitle} onChange={e => handleUpdateSettings({ heroTitle: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">النص الفرعي</label>
-                  <input value={siteSettings.heroSubtitle} onChange={e => updateSiteSettings({ heroSubtitle: e.target.value })}
+                  <input value={siteSettings.heroSubtitle} onChange={e => handleUpdateSettings({ heroSubtitle: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص الزر الأول</label>
-                  <input value={siteSettings.heroBtnText} onChange={e => updateSiteSettings({ heroBtnText: e.target.value })}
+                  <input value={siteSettings.heroBtnText} onChange={e => handleUpdateSettings({ heroBtnText: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص الزر الثاني</label>
-                  <input value={siteSettings.heroBtn2Text} onChange={e => updateSiteSettings({ heroBtn2Text: e.target.value })}
+                  <input value={siteSettings.heroBtn2Text} onChange={e => handleUpdateSettings({ heroBtn2Text: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
               </div>
@@ -1130,7 +1150,7 @@ export default function AdminPage() {
                       <div key={idx} className="relative group">
                         <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                           onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
-                        <button type="button" onClick={() => updateSiteSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
+                        <button type="button" onClick={() => handleUpdateSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
                           className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
                           <X className="w-3 h-3" />
                         </button>
@@ -1141,7 +1161,7 @@ export default function AdminPage() {
                     )}
                   </div>
                 )}
-                <button type="button" onClick={() => updateSiteSettings({ heroImages: [...siteSettings.heroImages, ''] })}
+                <button type="button" onClick={() => handleUpdateSettings({ heroImages: [...siteSettings.heroImages, ''] })}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
                   <Plus className="w-4 h-4" /> إضافة صورة
                 </button>
@@ -1156,27 +1176,27 @@ export default function AdminPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">اسم المتجر</label>
-                  <input value={siteSettings.footerBrand} onChange={e => updateSiteSettings({ footerBrand: e.target.value })}
+                  <input value={siteSettings.footerBrand} onChange={e => handleUpdateSettings({ footerBrand: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">رقم الهاتف</label>
-                  <input value={siteSettings.footerPhone} onChange={e => updateSiteSettings({ footerPhone: e.target.value })}
+                  <input value={siteSettings.footerPhone} onChange={e => handleUpdateSettings({ footerPhone: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">البريد الإلكتروني</label>
-                  <input value={siteSettings.footerEmail} onChange={e => updateSiteSettings({ footerEmail: e.target.value })}
+                  <input value={siteSettings.footerEmail} onChange={e => handleUpdateSettings({ footerEmail: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">العنوان</label>
-                  <input value={siteSettings.footerAddress} onChange={e => updateSiteSettings({ footerAddress: e.target.value })}
+                  <input value={siteSettings.footerAddress} onChange={e => handleUpdateSettings({ footerAddress: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نبذة عن المتجر</label>
-                  <textarea value={siteSettings.footerAbout || ''} onChange={e => updateSiteSettings({ footerAbout: e.target.value })} rows={2}
+                  <textarea value={siteSettings.footerAbout || ''} onChange={e => handleUpdateSettings({ footerAbout: e.target.value })} rows={2}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none" />
                 </div>
                 <div className="md:col-span-2">
@@ -1186,12 +1206,12 @@ export default function AdminPage() {
                       <input value={f.title} onChange={e => {
                         const features = [...siteSettings.features];
                         features[i] = { ...features[i], title: e.target.value };
-                        updateSiteSettings({ features });
+                        handleUpdateSettings({ features });
                       }} placeholder="العنوان" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                       <input value={f.desc} onChange={e => {
                         const features = [...siteSettings.features];
                         features[i] = { ...features[i], desc: e.target.value };
-                        updateSiteSettings({ features });
+                        handleUpdateSettings({ features });
                       }} placeholder="الوصف" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                       <span className="text-2xl">{f.emoji}</span>
                     </div>
@@ -1206,12 +1226,12 @@ export default function AdminPage() {
                     <input value={link.label} onChange={e => {
                       const links = [...(siteSettings.footerQuickLinks || [])];
                       links[i] = { ...links[i], label: e.target.value };
-                      updateSiteSettings({ footerQuickLinks: links });
+                      handleUpdateSettings({ footerQuickLinks: links });
                     }} placeholder="العنوان" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                     <select value={link.page} onChange={e => {
                       const links = [...(siteSettings.footerQuickLinks || [])];
                       links[i] = { ...links[i], page: e.target.value };
-                      updateSiteSettings({ footerQuickLinks: links });
+                      handleUpdateSettings({ footerQuickLinks: links });
                     }} className="border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300">
                       <option value="home">الرئيسية</option>
                       <option value="shop">المتجر</option>
@@ -1219,14 +1239,14 @@ export default function AdminPage() {
                       <option value="contact">تواصل معنا</option>
                     </select>
                     {(siteSettings.footerQuickLinks || []).length > 1 && (
-                      <button onClick={() => updateSiteSettings({ footerQuickLinks: (siteSettings.footerQuickLinks || []).filter((_, j) => j !== i) })}
+                      <button onClick={() => handleUpdateSettings({ footerQuickLinks: (siteSettings.footerQuickLinks || []).filter((_, j) => j !== i) })}
                         className="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 text-sm">
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 ))}
-                <button onClick={() => updateSiteSettings({ footerQuickLinks: [...(siteSettings.footerQuickLinks || []), { label: '', page: 'home' }] })}
+                <button onClick={() => handleUpdateSettings({ footerQuickLinks: [...(siteSettings.footerQuickLinks || []), { label: '', page: 'home' }] })}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all mt-2">
                   <Plus className="w-4 h-4" /> إضافة رابط
                 </button>
@@ -1239,12 +1259,12 @@ export default function AdminPage() {
                     <input value={link.label} onChange={e => {
                       const links = [...(siteSettings.footerServiceLinks || [])];
                       links[i] = { ...links[i], label: e.target.value };
-                      updateSiteSettings({ footerServiceLinks: links });
+                      handleUpdateSettings({ footerServiceLinks: links });
                     }} placeholder="العنوان" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                     <select value={link.page} onChange={e => {
                       const links = [...(siteSettings.footerServiceLinks || [])];
                       links[i] = { ...links[i], page: e.target.value };
-                      updateSiteSettings({ footerServiceLinks: links });
+                      handleUpdateSettings({ footerServiceLinks: links });
                     }} className="border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300">
                       <option value="home">الرئيسية</option>
                       <option value="shop">المتجر</option>
@@ -1252,14 +1272,14 @@ export default function AdminPage() {
                       <option value="contact">تواصل معنا</option>
                     </select>
                     {(siteSettings.footerServiceLinks || []).length > 1 && (
-                      <button onClick={() => updateSiteSettings({ footerServiceLinks: (siteSettings.footerServiceLinks || []).filter((_, j) => j !== i) })}
+                      <button onClick={() => handleUpdateSettings({ footerServiceLinks: (siteSettings.footerServiceLinks || []).filter((_, j) => j !== i) })}
                         className="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 text-sm">
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 ))}
-                <button onClick={() => updateSiteSettings({ footerServiceLinks: [...(siteSettings.footerServiceLinks || []), { label: '', page: 'contact' }] })}
+                <button onClick={() => handleUpdateSettings({ footerServiceLinks: [...(siteSettings.footerServiceLinks || []), { label: '', page: 'contact' }] })}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all mt-2">
                   <Plus className="w-4 h-4" /> إضافة رابط
                 </button>
@@ -1272,22 +1292,22 @@ export default function AdminPage() {
                     <input value={s.icon} onChange={e => {
                       const social = [...(siteSettings.footerSocial || [])];
                       social[i] = { ...social[i], icon: e.target.value };
-                      updateSiteSettings({ footerSocial: social });
+                      handleUpdateSettings({ footerSocial: social });
                     }} placeholder="📘" className="w-16 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 text-center" />
                     <input value={s.url} onChange={e => {
                       const social = [...(siteSettings.footerSocial || [])];
                       social[i] = { ...social[i], url: e.target.value };
-                      updateSiteSettings({ footerSocial: social });
+                      handleUpdateSettings({ footerSocial: social });
                     }} placeholder="https://..." className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                     {(siteSettings.footerSocial || []).length > 1 && (
-                      <button onClick={() => updateSiteSettings({ footerSocial: (siteSettings.footerSocial || []).filter((_, j) => j !== i) })}
+                      <button onClick={() => handleUpdateSettings({ footerSocial: (siteSettings.footerSocial || []).filter((_, j) => j !== i) })}
                         className="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 text-sm">
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 ))}
-                <button onClick={() => updateSiteSettings({ footerSocial: [...(siteSettings.footerSocial || []), { icon: '🌐', url: '' }] })}
+                <button onClick={() => handleUpdateSettings({ footerSocial: [...(siteSettings.footerSocial || []), { icon: '🌐', url: '' }] })}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all mt-2">
                   <Plus className="w-4 h-4" /> إضافة حساب
                 </button>
@@ -1303,18 +1323,18 @@ export default function AdminPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">اللون الأساسي</label>
                   <div className="flex gap-2">
-                    <input type="color" value={siteSettings.primaryColor} onChange={e => updateSiteSettings({ primaryColor: e.target.value })}
+                    <input type="color" value={siteSettings.primaryColor} onChange={e => handleUpdateSettings({ primaryColor: e.target.value })}
                       className="w-10 h-10 p-0.5 border border-gray-200 rounded-lg cursor-pointer" />
-                    <input value={siteSettings.primaryColor} onChange={e => updateSiteSettings({ primaryColor: e.target.value })}
+                    <input value={siteSettings.primaryColor} onChange={e => handleUpdateSettings({ primaryColor: e.target.value })}
                       className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">اللون الثانوي</label>
                   <div className="flex gap-2">
-                    <input type="color" value={siteSettings.secondaryColor} onChange={e => updateSiteSettings({ secondaryColor: e.target.value })}
+                    <input type="color" value={siteSettings.secondaryColor} onChange={e => handleUpdateSettings({ secondaryColor: e.target.value })}
                       className="w-10 h-10 p-0.5 border border-gray-200 rounded-lg cursor-pointer" />
-                    <input value={siteSettings.secondaryColor} onChange={e => updateSiteSettings({ secondaryColor: e.target.value })}
+                    <input value={siteSettings.secondaryColor} onChange={e => handleUpdateSettings({ secondaryColor: e.target.value })}
                       className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
                   </div>
                 </div>
@@ -1329,40 +1349,40 @@ export default function AdminPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">النص الصغير (البadge)</label>
-                  <input value={siteSettings.saleBannerBadge || ''} onChange={e => updateSiteSettings({ saleBannerBadge: e.target.value })}
+                  <input value={siteSettings.saleBannerBadge || ''} onChange={e => handleUpdateSettings({ saleBannerBadge: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">العنوان</label>
-                  <input value={siteSettings.saleBannerTitle || ''} onChange={e => updateSiteSettings({ saleBannerTitle: e.target.value })}
+                  <input value={siteSettings.saleBannerTitle || ''} onChange={e => handleUpdateSettings({ saleBannerTitle: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">النص الفرعي (استخدم &#123;coupon&#125; مكان الكود)</label>
-                  <input value={siteSettings.saleBannerSubtitle || ''} onChange={e => updateSiteSettings({ saleBannerSubtitle: e.target.value })}
+                  <input value={siteSettings.saleBannerSubtitle || ''} onChange={e => handleUpdateSettings({ saleBannerSubtitle: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">كود الخصم</label>
-                  <input value={siteSettings.saleBannerCoupon || ''} onChange={e => updateSiteSettings({ saleBannerCoupon: e.target.value })}
+                  <input value={siteSettings.saleBannerCoupon || ''} onChange={e => handleUpdateSettings({ saleBannerCoupon: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص الزر</label>
-                  <input value={siteSettings.saleBannerBtnText || ''} onChange={e => updateSiteSettings({ saleBannerBtnText: e.target.value })}
+                  <input value={siteSettings.saleBannerBtnText || ''} onChange={e => handleUpdateSettings({ saleBannerBtnText: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">الأيقونة (إيموجي)</label>
-                  <input value={siteSettings.saleBannerIcon || '🏷️'} onChange={e => updateSiteSettings({ saleBannerIcon: e.target.value })}
+                  <input value={siteSettings.saleBannerIcon || '🏷️'} onChange={e => handleUpdateSettings({ saleBannerIcon: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">لون البانر (البداية)</label>
                   <div className="flex gap-2">
-                    <input type="color" value={siteSettings.saleBannerColor || '#f97316'} onChange={e => updateSiteSettings({ saleBannerColor: e.target.value })}
+                    <input type="color" value={siteSettings.saleBannerColor || '#f97316'} onChange={e => handleUpdateSettings({ saleBannerColor: e.target.value })}
                       className="w-10 h-10 p-0.5 border border-gray-200 rounded-lg cursor-pointer" />
-                    <input value={siteSettings.saleBannerColor || '#f97316'} onChange={e => updateSiteSettings({ saleBannerColor: e.target.value })}
+                    <input value={siteSettings.saleBannerColor || '#f97316'} onChange={e => handleUpdateSettings({ saleBannerColor: e.target.value })}
                       className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
                   </div>
                 </div>
@@ -1377,19 +1397,19 @@ export default function AdminPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">حساب InstaPay</label>
-                  <input value={siteSettings.instapayAccount || ''} onChange={e => updateSiteSettings({ instapayAccount: e.target.value })}
+                  <input value={siteSettings.instapayAccount || ''} onChange={e => handleUpdateSettings({ instapayAccount: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
                   <p className="text-xs text-gray-400 font-cairo mt-1">الإيميل أو رقم الموبايل المرتبط بـ InstaPay</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">رقم فودافون كاش</label>
-                  <input value={siteSettings.vodafoneAccount || ''} onChange={e => updateSiteSettings({ vodafoneAccount: e.target.value })}
+                  <input value={siteSettings.vodafoneAccount || ''} onChange={e => handleUpdateSettings({ vodafoneAccount: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
                   <p className="text-xs text-gray-400 font-cairo mt-1">رقم الموبايل الخاص بـ فودافون كاش</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">رقم واتساب للمدفوعات</label>
-                  <input value={siteSettings.whatsappNumber || ''} onChange={e => updateSiteSettings({ whatsappNumber: e.target.value })}
+                  <input value={siteSettings.whatsappNumber || ''} onChange={e => handleUpdateSettings({ whatsappNumber: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
                   <p className="text-xs text-gray-400 font-cairo mt-1">رقم واتساب اللي هيبعت عليه العميل إثبات الدفع</p>
                 </div>
@@ -1404,7 +1424,7 @@ export default function AdminPage() {
               <p className="text-sm text-gray-500 font-cairo mb-3">هذه الرسالة تظهر للعميل عند تتبع طلبه برقم الموبايل</p>
               <textarea
                 value={siteSettings.orderTrackingMessage || ''}
-                onChange={e => updateSiteSettings({ orderTrackingMessage: e.target.value })}
+                onChange={e => handleUpdateSettings({ orderTrackingMessage: e.target.value })}
                 rows={3}
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
               />
@@ -1425,7 +1445,7 @@ export default function AdminPage() {
                 ].map(item => (
                   <label key={item.key} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer">
                     <input type="checkbox" checked={siteSettings[item.key as keyof typeof siteSettings] as boolean}
-                      onChange={e => updateSiteSettings({ [item.key]: e.target.checked })}
+                      onChange={e => handleUpdateSettings({ [item.key]: e.target.checked })}
                       className="w-5 h-5 accent-pink-500" />
                     <span className="text-sm font-cairo text-gray-700">{item.label}</span>
                   </label>
@@ -1436,7 +1456,7 @@ export default function AdminPage() {
             {/* Save Button */}
             <div className="flex justify-center">
               <button
-            onClick={() => { if (window.confirm('هل تريد حفظ التعديلات؟')) { saveAllToFirestore(); showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success'); } }}
+            onClick={handleSaveAll}
                 className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-2xl text-lg font-bold font-cairo shadow-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 <Save className="w-6 h-6" />

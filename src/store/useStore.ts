@@ -488,19 +488,16 @@ export const useStore = create<StoreState>()(
       addProduct: (product) => {
         const ts = Date.now();
         set(state => ({ products: [...state.products, product], productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
       },
 
       updateProduct: (product) => {
         const ts = Date.now();
         set(state => ({ products: state.products.map(p => p.id === product.id ? product : p), productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
       },
 
       deleteProduct: (id) => {
         const ts = Date.now();
         set(state => ({ products: state.products.filter(p => p.id !== id), productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
       },
 
       saveAllToFirestore: () => {
