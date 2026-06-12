@@ -69,6 +69,18 @@ export default function ProductDetailPage({ productId }: Props) {
               }}
               onMouseEnter={() => setShowLens(true)}
               onMouseLeave={() => setShowLens(false)}
+              onTouchStart={(e) => {
+                const t = e.touches[0];
+                const rect = e.currentTarget.getBoundingClientRect();
+                setLensPos({ x: ((t.clientX - rect.left) / rect.width) * 100, y: ((t.clientY - rect.top) / rect.height) * 100 });
+                setShowLens(true);
+              }}
+              onTouchMove={(e) => {
+                const t = e.touches[0];
+                const rect = e.currentTarget.getBoundingClientRect();
+                setLensPos({ x: ((t.clientX - rect.left) / rect.width) * 100, y: ((t.clientY - rect.top) / rect.height) * 100 });
+              }}
+              onTouchEnd={() => setShowLens(false)}
             >
               <img src={product.images[imgIndex]} alt={product.name} className="w-full h-full object-cover select-none pointer-events-none" />
               {/* Magnifier Lens */}
