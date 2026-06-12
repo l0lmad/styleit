@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { saveSettings } from '../lib/settingsService';
+import { saveOrderToFirestore, saveUnreadIdsToFirestore } from '../lib/ordersService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
@@ -581,13 +582,16 @@ export const useStore = create<StoreState>()(
                 : state.currentUser,
           };
         });
+        saveOrderToFirestore(newOrder);
+        saveUnreadIdsToFirestore([...useStore.getState().unreadOrderIds, id]);
         return id;
       },
 
-      markOrdersRead: (orderIds) =>
-        set(state => ({
-          unreadOrderIds: state.unreadOrderIds.filter(id => !orderIds.includes(id)),
-        })),
+      markOrdersRead: (orderIds) => {
+        const newIds = useStore.getState().unreadOrderIds.filter(id => !orderIds.includes(id));
+        set({ unreadOrderIds: newIds });
+        saveUnreadIdsToFirestore(newIds);
+      },
 
       updateOrderStatus: (orderId, status) =>
         set(state => ({
