@@ -57,6 +57,7 @@ export default function AdminPage() {
   const [newColor, setNewColor] = useState('');
   const [newColorName, setNewColorName] = useState('');
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [statModal, setStatModal] = useState<{type: string; title: string} | null>(null);
 
   const hasUnsavedRef = useRef(false);
   useEffect(() => {
@@ -325,17 +326,18 @@ export default function AdminPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { title: 'إجمالي الإيرادات', value: `${totalRevenue.toLocaleString()} ج`, icon: <DollarSign className="w-6 h-6" />, color: 'from-green-400 to-emerald-600', sub: `من ${orders.filter(o => o.status === 'delivered').length} طلب` },
-                { title: 'طلبات معلقة', value: pendingOrders, icon: <ShoppingCart className="w-6 h-6" />, color: 'from-yellow-400 to-orange-500', sub: 'تحتاج مراجعة' },
-                { title: 'إجمالي المنتجات', value: products.length, icon: <Package className="w-6 h-6" />, color: 'from-blue-400 to-blue-600', sub: `${lowStock} منتج مخزون منخفض` },
-                { title: 'إجمالي العملاء', value: totalCustomers, icon: <UserCheck className="w-6 h-6" />, color: 'from-pink-400 to-purple-600', sub: 'عميل مسجل' },
+                { type: 'revenue', title: 'إجمالي الإيرادات', value: `${totalRevenue.toLocaleString()} ج`, icon: <DollarSign className="w-6 h-6" />, color: 'from-green-400 to-emerald-600', sub: `من ${orders.filter(o => o.status === 'delivered').length} طلب` },
+                { type: 'pending', title: 'طلبات معلقة', value: pendingOrders, icon: <ShoppingCart className="w-6 h-6" />, color: 'from-yellow-400 to-orange-500', sub: 'تحتاج مراجعة' },
+                { type: 'products', title: 'إجمالي المنتجات', value: products.length, icon: <Package className="w-6 h-6" />, color: 'from-blue-400 to-blue-600', sub: `${lowStock} منتج مخزون منخفض` },
+                { type: 'customers', title: 'إجمالي العملاء', value: totalCustomers, icon: <UserCheck className="w-6 h-6" />, color: 'from-pink-400 to-purple-600', sub: 'عميل مسجل' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className={`bg-gradient-to-br ${stat.color} text-white p-5 rounded-2xl shadow-lg`}
+                  onClick={() => setStatModal({ type: stat.type, title: stat.title })}
+                  className={`bg-gradient-to-br ${stat.color} text-white p-5 rounded-2xl shadow-lg cursor-pointer hover:scale-[1.02] transition-transform`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="bg-white/20 p-2 rounded-xl">{stat.icon}</div>
@@ -799,13 +801,14 @@ export default function AdminPage() {
               return (<>            {/* Profit Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { title: 'إجمالي الإيرادات', value: `${revenue.toLocaleString()} ج`, color: 'from-green-400 to-emerald-600', icon: <DollarSign className="w-5 h-5" /> },
-                { title: 'إجمالي التكاليف', value: `${Math.round(cost).toLocaleString()} ج`, color: 'from-orange-400 to-red-500', icon: <ShoppingCart className="w-5 h-5" /> },
-                { title: 'صافي الربح', value: `${Math.round(profit).toLocaleString()} ج`, color: 'from-blue-400 to-blue-600', icon: <BarChart2 className="w-5 h-5" /> },
-                { title: 'هامش الربح', value: revenue > 0 ? `${((profit / revenue) * 100).toFixed(1)}%` : '0%', color: 'from-purple-400 to-purple-600', icon: <TrendingUp className="w-5 h-5" /> },
+                { type: 'analytics-revenue', title: 'إجمالي الإيرادات', value: `${revenue.toLocaleString()} ج`, color: 'from-green-400 to-emerald-600', icon: <DollarSign className="w-5 h-5" /> },
+                { type: 'analytics-cost', title: 'إجمالي التكاليف', value: `${Math.round(cost).toLocaleString()} ج`, color: 'from-orange-400 to-red-500', icon: <ShoppingCart className="w-5 h-5" /> },
+                { type: 'analytics-profit', title: 'صافي الربح', value: `${Math.round(profit).toLocaleString()} ج`, color: 'from-blue-400 to-blue-600', icon: <BarChart2 className="w-5 h-5" /> },
+                { type: 'analytics-margin', title: 'هامش الربح', value: revenue > 0 ? `${((profit / revenue) * 100).toFixed(1)}%` : '0%', color: 'from-purple-400 to-purple-600', icon: <TrendingUp className="w-5 h-5" /> },
               ].map((s, i) => (
                 <motion.div key={s.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className={`bg-gradient-to-br ${s.color} text-white p-5 rounded-2xl shadow-lg`}>
+                  onClick={() => setStatModal({ type: s.type, title: s.title })}
+                  className={`bg-gradient-to-br ${s.color} text-white p-5 rounded-2xl shadow-lg cursor-pointer hover:scale-[1.02] transition-transform`}>
                   <div className="bg-white/20 p-2 rounded-xl inline-flex mb-2">{s.icon}</div>
                   <p className="text-2xl font-black font-cairo">{s.value}</p>
                   <p className="text-sm font-bold font-cairo mt-1">{s.title}</p>
@@ -1496,6 +1499,319 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+      <AnimatePresence>
+        {statModal && (() => {
+          const modalType = statModal.type;
+          return (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setStatModal(null)}
+                className="fixed inset-0 bg-black/50 z-50"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-3xl z-50 overflow-y-auto shadow-2xl"
+                style={{ maxHeight: '90vh' }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-black text-gray-900 font-cairo">{statModal.title}</h2>
+                    <button onClick={() => setStatModal(null)} className="p-2 hover:bg-gray-100 rounded-xl">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {modalType === 'revenue' && (() => {
+                    const delivered = orders.filter(o => o.status === 'delivered');
+                    const byProduct = new Map<string, {qty: number; rev: number}>();
+                    delivered.flatMap(o => o.items).forEach(i => {
+                      const pid = i.product.id;
+                      const cur = byProduct.get(pid) || {qty: 0, rev: 0};
+                      cur.qty += i.quantity;
+                      cur.rev += i.product.price * i.quantity;
+                      byProduct.set(pid, cur);
+                    });
+                    const topProducts = [...byProduct.entries()].sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
+                    const prodMap = new Map(products.map(p => [p.id, p]));
+                    return (
+                      <div className="space-y-3 font-cairo">
+                        <div className="bg-green-50 rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-500">إجمالي الإيرادات</p>
+                          <p className="text-3xl font-black text-green-600">{delivered.reduce((a, o) => a + o.total, 0).toLocaleString()} ج</p>
+                          <p className="text-xs text-gray-400 mt-1">من {delivered.length} طلب مكتمل</p>
+                        </div>
+                        <p className="font-bold text-gray-700 mt-4 mb-2">أكثر 10 منتجات تحقيقاً للإيرادات:</p>
+                        {topProducts.map(([pid, data], i) => {
+                          const p = prodMap.get(pid);
+                          return (
+                            <div key={pid} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-bold text-gray-400 w-5">{i + 1}</span>
+                                <div>
+                                  <p className="text-sm font-bold">{p?.name || 'منتج محذوف'}</p>
+                                  <p className="text-xs text-gray-400">تم بيع {data.qty} وحدة</p>
+                                </div>
+                              </div>
+                              <p className="font-bold text-green-600">{data.rev.toLocaleString()} ج</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                  {modalType === 'pending' && (() => {
+                    const pending = orders.filter(o => o.status === 'pending' || o.status === 'confirmed');
+                    return (
+                      <div className="space-y-3 font-cairo">
+                        <div className="bg-orange-50 rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-500">طلبات معلقة</p>
+                          <p className="text-3xl font-black text-orange-600">{pending.length}</p>
+                          <p className="text-xs text-gray-400 mt-1">في انتظار المراجعة أو التأكيد</p>
+                        </div>
+                        {pending.length === 0 && <p className="text-center text-gray-400 py-4">لا توجد طلبات معلقة</p>}
+                        {pending.slice(0, 20).map(o => (
+                          <div key={o.id} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                            <div>
+                              <p className="text-sm font-bold">{o.userName}</p>
+                              <p className="text-xs text-gray-400">{o.total.toLocaleString()} ج • {new Date(o.createdAt).toLocaleDateString('ar-EG')}</p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded-lg font-bold ${o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {STATUS_LABELS[o.status]}
+                            </span>
+                          </div>
+                        ))}
+                        {pending.length > 20 && <p className="text-xs text-gray-400 text-center">و{pending.length - 20} طلبات أخرى...</p>}
+                      </div>
+                    );
+                  })()}
+                  {modalType === 'products' && (() => {
+                    const catCount = new Map<string, number>();
+                    products.forEach(p => { catCount.set(p.category, (catCount.get(p.category) || 0) + 1); });
+                    const lowStockItems = products.filter(p => p.stock !== undefined && p.stock <= 5);
+                    return (
+                      <div className="space-y-3 font-cairo">
+                        <div className="bg-blue-50 rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-500">إجمالي المنتجات</p>
+                          <p className="text-3xl font-black text-blue-600">{products.length}</p>
+                        </div>
+                        <p className="font-bold text-gray-700 mb-2">التوزيع حسب الفئة:</p>
+                        {[...catCount.entries()].map(([cat, cnt]) => (
+                          <div key={cat} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                            <span className="text-sm font-bold">{cat}</span>
+                            <span className="text-sm font-bold text-blue-600">{cnt} منتج</span>
+                          </div>
+                        ))}
+                        {lowStockItems.length > 0 && (
+                          <>
+                            <p className="font-bold text-red-600 mt-4 mb-2">منتجات المخزون المنخفض (≤ 5):</p>
+                            {lowStockItems.map(p => (
+                              <div key={p.id} className="flex items-center justify-between bg-red-50 rounded-xl p-3">
+                                <span className="text-sm font-bold">{p.name}</span>
+                                <span className="text-sm font-bold text-red-600">متبقي {p.stock}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {modalType === 'customers' && (() => {
+                    const registered = users.filter(u => u.type === 'user');
+                    const guest = customers.filter(c => !users.some(u => u.phone === c.phone));
+                    return (
+                      <div className="space-y-3 font-cairo">
+                        <div className="bg-purple-50 rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-500">إجمالي العملاء</p>
+                          <p className="text-3xl font-black text-purple-600">{totalCustomers}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-pink-50 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">مسجل</p>
+                            <p className="text-2xl font-black text-pink-600">{registered.length}</p>
+                          </div>
+                          <div className="bg-gray-100 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">زوار</p>
+                            <p className="text-2xl font-black text-gray-600">{guest.length}</p>
+                          </div>
+                        </div>
+                        <p className="font-bold text-gray-700 mt-2 mb-2">آخر العملاء:</p>
+                        {[...customers].reverse().slice(0, 10).map(c => (
+                          <div key={c.phone} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                            <div>
+                              <p className="text-sm font-bold">{c.name}</p>
+                              <p className="text-xs text-gray-400">{c.phone}</p>
+                            </div>
+                            <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleDateString('ar-EG')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                  {modalType.startsWith('analytics-') && (() => {
+                    const filteredOrders = analyticsFilteredOrders;
+                    const delivered = filteredOrders.filter(o => o.status === 'delivered');
+                    const revenueVal = delivered.reduce((a, o) => a + o.total, 0);
+                    const costVal = delivered.flatMap(o => o.items)
+                      .reduce((a, i) => a + (i.product.cost ?? i.product.price * 0.6) * i.quantity, 0);
+                    const profitVal = revenueVal - costVal;
+                    if (modalType === 'analytics-revenue') {
+                      const byProduct = new Map<string, {qty: number; rev: number}>();
+                      delivered.flatMap(o => o.items).forEach(i => {
+                        const pid = i.product.id;
+                        const cur = byProduct.get(pid) || {qty: 0, rev: 0};
+                        cur.qty += i.quantity;
+                        cur.rev += i.product.price * i.quantity;
+                        byProduct.set(pid, cur);
+                      });
+                      const top = [...byProduct.entries()].sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
+                      const pm = new Map(products.map(p => [p.id, p]));
+                      return (
+                        <div className="space-y-3 font-cairo">
+                          <div className="bg-green-50 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">إجمالي الإيرادات</p>
+                            <p className="text-3xl font-black text-green-600">{revenueVal.toLocaleString()} ج</p>
+                          </div>
+                          <p className="font-bold text-gray-700 mb-2">حسب المنتج:</p>
+                          {top.length === 0 && <p className="text-gray-400 text-center py-4">لا توجد مبيعات في هذه الفترة</p>}
+                          {top.map(([pid, d], i) => {
+                            const p = pm.get(pid);
+                            return (
+                              <div key={pid} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-bold text-gray-400 w-5">{i + 1}</span>
+                                  <p className="text-sm font-bold">{p?.name || 'منتج محذوف'} <span className="text-xs text-gray-400">({d.qty} وحدة)</span></p>
+                                </div>
+                                <p className="font-bold text-green-600">{d.rev.toLocaleString()} ج</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    if (modalType === 'analytics-cost') {
+                      const byProduct = new Map<string, {qty: number; cost: number}>();
+                      delivered.flatMap(o => o.items).forEach(i => {
+                        const pid = i.product.id;
+                        const cur = byProduct.get(pid) || {qty: 0, cost: 0};
+                        cur.qty += i.quantity;
+                        cur.cost += (i.product.cost ?? i.product.price * 0.6) * i.quantity;
+                        byProduct.set(pid, cur);
+                      });
+                      const top = [...byProduct.entries()].sort((a, b) => b[1].cost - a[1].cost).slice(0, 10);
+                      const pm = new Map(products.map(p => [p.id, p]));
+                      return (
+                        <div className="space-y-3 font-cairo">
+                          <div className="bg-orange-50 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">إجمالي التكاليف</p>
+                            <p className="text-3xl font-black text-orange-600">{Math.round(costVal).toLocaleString()} ج</p>
+                          </div>
+                          <p className="font-bold text-gray-700 mb-2">أكثر المنتجات تكلفة:</p>
+                          {top.length === 0 && <p className="text-gray-400 text-center py-4">لا توجد بيانات</p>}
+                          {top.map(([pid, d], i) => {
+                            const p = pm.get(pid);
+                            return (
+                              <div key={pid} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-bold text-gray-400 w-5">{i + 1}</span>
+                                  <p className="text-sm font-bold">{p?.name || 'منتج محذوف'} <span className="text-xs text-gray-400">({d.qty} وحدة)</span></p>
+                                </div>
+                                <p className="font-bold text-orange-600">{Math.round(d.cost).toLocaleString()} ج</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    if (modalType === 'analytics-profit') {
+                      const byProduct = new Map<string, {qty: number; profit: number; rev: number}>();
+                      delivered.flatMap(o => o.items).forEach(i => {
+                        const pid = i.product.id;
+                        const cur = byProduct.get(pid) || {qty: 0, profit: 0, rev: 0};
+                        cur.qty += i.quantity;
+                        const cost = i.product.cost ?? i.product.price * 0.6;
+                        cur.profit += (i.product.price - cost) * i.quantity;
+                        cur.rev += i.product.price * i.quantity;
+                        byProduct.set(pid, cur);
+                      });
+                      const top = [...byProduct.entries()].sort((a, b) => b[1].profit - a[1].profit).slice(0, 10);
+                      const pm = new Map(products.map(p => [p.id, p]));
+                      return (
+                        <div className="space-y-3 font-cairo">
+                          <div className="bg-blue-50 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">صافي الربح</p>
+                            <p className="text-3xl font-black text-blue-600">{Math.round(profitVal).toLocaleString()} ج</p>
+                          </div>
+                          <p className="font-bold text-gray-700 mb-2">أكثر المنتجات ربحاً:</p>
+                          {top.length === 0 && <p className="text-gray-400 text-center py-4">لا توجد بيانات</p>}
+                          {top.map(([pid, d], i) => {
+                            const p = pm.get(pid);
+                            return (
+                              <div key={pid} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-bold text-gray-400 w-5">{i + 1}</span>
+                                  <p className="text-sm font-bold">{p?.name || 'منتج محذوف'}</p>
+                                </div>
+                                <p className="font-bold text-blue-600">{Math.round(d.profit).toLocaleString()} ج <span className="text-xs text-gray-400">({revenueVal > 0 ? ((d.profit / d.rev) * 100).toFixed(1) : 0}%)</span></p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    if (modalType === 'analytics-margin') {
+                      const byProduct = new Map<string, {qty: number; profit: number; rev: number}>();
+                      delivered.flatMap(o => o.items).forEach(i => {
+                        const pid = i.product.id;
+                        const cur = byProduct.get(pid) || {qty: 0, profit: 0, rev: 0};
+                        cur.qty += i.quantity;
+                        const cost = i.product.cost ?? i.product.price * 0.6;
+                        cur.profit += (i.product.price - cost) * i.quantity;
+                        cur.rev += i.product.price * i.quantity;
+                        byProduct.set(pid, cur);
+                      });
+                      const sorted = [...byProduct.entries()].sort((a, b) => {
+                        const mA = a[1].rev > 0 ? (a[1].profit / a[1].rev) * 100 : 0;
+                        const mB = b[1].rev > 0 ? (b[1].profit / b[1].rev) * 100 : 0;
+                        return mB - mA;
+                      }).slice(0, 10);
+                      const pm = new Map(products.map(p => [p.id, p]));
+                      const avgMargin = revenueVal > 0 ? (profitVal / revenueVal) * 100 : 0;
+                      return (
+                        <div className="space-y-3 font-cairo">
+                          <div className="bg-purple-50 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-500">متوسط هامش الربح</p>
+                            <p className="text-3xl font-black text-purple-600">{avgMargin.toFixed(1)}%</p>
+                          </div>
+                          <p className="font-bold text-gray-700 mb-2">المنتجات حسب هامش الربح:</p>
+                          {sorted.length === 0 && <p className="text-gray-400 text-center py-4">لا توجد بيانات</p>}
+                          {sorted.map(([pid, d], i) => {
+                            const p = pm.get(pid);
+                            const margin = d.rev > 0 ? ((d.profit / d.rev) * 100).toFixed(1) : '0';
+                            return (
+                              <div key={pid} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-bold text-gray-400 w-5">{i + 1}</span>
+                                  <p className="text-sm font-bold">{p?.name || 'منتج محذوف'}</p>
+                                </div>
+                                <p className="font-bold text-purple-600">{margin}% <span className="text-xs text-gray-400">| {Math.round(d.profit).toLocaleString()} ج</span></p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
       <AnimatePresence>
         {showProductModal && (
           <>
