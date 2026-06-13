@@ -647,20 +647,21 @@ export const useStore = create<StoreState>()(
       },
 
       saveCustomer: (info) => {
-        set(state => {
-          let updated: Customer[];
-          const exists = state.customers.find(c => c.phone === info.phone);
-          if (exists) {
-            updated = state.customers.map(c =>
-              c.phone === info.phone
-                ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, address: info.address, city: info.city }
-                : c
-            );
-          } else {
-            updated = [...state.customers, info];
-          }
-          saveCustomersToFirestore(updated);
-          return { customers: updated };
+        const state = get();
+        let updated: Customer[];
+        const exists = state.customers.find(c => c.phone === info.phone);
+        if (exists) {
+          updated = state.customers.map(c =>
+            c.phone === info.phone
+              ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, email: info.email || c.email, address: info.address, city: info.city, notes: info.notes || c.notes }
+              : c
+          );
+        } else {
+          updated = [...state.customers, info];
+        }
+        set({ customers: updated });
+        saveCustomersToFirestore(updated).catch(err => {
+          console.error('saveCustomersToFirestore error:', err);
         });
       },
 
