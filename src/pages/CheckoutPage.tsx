@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore, type Customer } from '../store/useStore';
+import { saveCustomersToFirestore } from '../lib/ordersService';
 
 export default function CheckoutPage() {
-  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, saveCustomer, siteSettings } = useStore();
+  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings } = useStore();
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
   const [confirmedTotal, setConfirmedTotal] = useState(0);
@@ -44,17 +45,32 @@ export default function CheckoutPage() {
       phone: form.phone,
       paymentMethod: form.paymentMethod,
     });
+    // Save customer data directly
     try {
-      await saveCustomer({
+      const s = useStore.getState();
+      const info = {
         name: form.name,
         phone: form.phone,
-        email: form.email || currentUser?.email,
+        email: form.email || currentUser?.email || '',
         address: form.address,
         city: form.city,
         notes: form.notes,
         orders: [id],
         createdAt: new Date().toISOString().split('T')[0],
-      });
+      };
+      const exists = s.customers.find((c: Customer) => c.phone === info.phone);
+      let updated: Customer[];
+      if (exists) {
+        updated = s.customers.map((c: Customer) =>
+          c.phone === info.phone
+            ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, email: info.email || c.email, address: info.address, city: info.city, notes: info.notes || c.notes }
+            : c
+        );
+      } else {
+        updated = [...s.customers, info];
+      }
+      useStore.setState({ customers: updated });
+      await saveCustomersToFirestore(updated);
     } catch (err) {
       console.error('saveCustomer error:', err);
     }
