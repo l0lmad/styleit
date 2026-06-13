@@ -61,6 +61,7 @@ export default function AdminPage() {
   const [statModal, setStatModal] = useState<{type: string; title: string} | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<{name: string; orders: string[]; phone?: string; email?: string; address?: string; city?: string; createdAt: string} | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<{phone: string; name: string; email: string; address: string; city: string} | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', address: '', city: '' });
 
   const hasUnsavedRef = useRef(false);
   useEffect(() => {
@@ -676,7 +677,7 @@ export default function AdminPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={(e) => { e.stopPropagation(); setEditingCustomer({ phone: '', name: u.name, email: u.email, address: '', city: '' }); }}
+                              onClick={(e) => { e.stopPropagation(); setViewingCustomer(null); const d = { phone: '', name: u.name, email: u.email, address: '', city: '' }; setEditingCustomer(d); setEditForm(d); }}
                               className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -704,7 +705,7 @@ export default function AdminPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={(e) => { e.stopPropagation(); setEditingCustomer({ phone: c.phone, name: c.name, email: c.email || '', address: c.address || '', city: c.city || '' }); }}
+                              onClick={(e) => { e.stopPropagation(); setViewingCustomer(null); const d = { phone: c.phone, name: c.name, email: c.email || '', address: c.address || '', city: c.city || '' }; setEditingCustomer(d); setEditForm(d); }}
                               className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -2171,73 +2172,81 @@ export default function AdminPage() {
 
       {/* Customer Edit Modal */}
       <AnimatePresence>
-        {editingCustomer && (() => {
-          const [form, setForm] = useState(editingCustomer);
-          return (
-            <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCustomer(null)} className="fixed inset-0 bg-black/50 z-50" />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-white rounded-3xl z-50 overflow-y-auto shadow-2xl"
-                style={{ maxHeight: '90vh' }}
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-xl font-black text-gray-900 font-cairo">تعديل بيانات العميل</h2>
-                    <button onClick={() => setEditingCustomer(null)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
+        {editingCustomer && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCustomer(null)} className="fixed inset-0 bg-black/50 z-50" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-white rounded-3xl z-50 overflow-y-auto shadow-2xl"
+              style={{ maxHeight: '90vh' }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-black text-gray-900 font-cairo">تعديل بيانات العميل</h2>
+                  <button onClick={() => setEditingCustomer(null)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="space-y-4 font-cairo">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">الاسم</label>
+                    <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
                   </div>
-                  <div className="space-y-4 font-cairo">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">الاسم</label>
-                      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">رقم الموبايل</label>
-                      <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">البريد الإلكتروني</label>
-                      <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">العنوان</label>
-                      <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">المدينة</label>
-                      <input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (!form.phone) { showNotification('رقم الموبايل مطلوب', 'error'); return; }
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">رقم الموبايل</label>
+                    <input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">البريد الإلكتروني</label>
+                    <input value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">العنوان</label>
+                    <input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">المدينة</label>
+                    <input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!editForm.phone) {
+                        useStore.setState(s => ({
+                          users: s.users.map(u =>
+                            u.email === editingCustomer.email
+                              ? { ...u, name: editForm.name, email: editForm.email }
+                              : u
+                          ),
+                        }));
+                        setEditingCustomer(null);
+                        showNotification('تم تحديث بيانات العميل ✓');
+                      } else {
                         useStore.setState(s => ({
                           customers: s.customers.map(c =>
                             c.phone === editingCustomer.phone
-                              ? { ...c, name: form.name, phone: form.phone, email: form.email, address: form.address, city: form.city }
+                              ? { ...c, name: editForm.name, phone: editForm.phone, email: editForm.email, address: editForm.address, city: editForm.city }
                               : c
                           ),
                         }));
                         saveCustomersToFirestore(useStore.getState().customers);
                         setEditingCustomer(null);
                         showNotification('تم تحديث بيانات العميل ✓');
-                      }}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-bold font-cairo hover:shadow-lg transition-all"
-                    >
-                      حفظ التغييرات
-                    </button>
-                  </div>
+                      }
+                    }}
+                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-bold font-cairo hover:shadow-lg transition-all"
+                  >
+                    حفظ التغييرات
+                  </button>
                 </div>
-              </motion.div>
-            </>
-          );
-        })()}
+              </div>
+            </motion.div>
+          </>
+        )}
       </AnimatePresence>
     </div>
   );

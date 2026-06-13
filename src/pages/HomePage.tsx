@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Truck, Shield, HeadphonesIcon, TrendingUp, Tag, Zap } from 'lucide-react';
+import { ArrowLeft, Truck, Shield, HeadphonesIcon, TrendingUp, Tag, Zap, Package } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 
@@ -313,7 +313,41 @@ export default function HomePage() {
         </section>
       )}
 
-
+      {/* All Products */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 font-cairo flex items-center gap-2">
+              <Package className="w-6 h-6" style={{ color: siteSettings.primaryColor }} />
+              جميع المنتجات
+            </h2>
+            <p className="text-gray-500 font-cairo text-sm mt-1">تصفح جميع منتجاتنا</p>
+          </div>
+          <button
+            onClick={() => setActivePage('shop')}
+            className="flex items-center gap-2 font-cairo text-sm font-medium"
+            style={{ color: siteSettings.primaryColor }}
+          >
+            عرض الكل <ArrowLeft className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {products.filter(p => p.stock > 0).map((p, i) => (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <ProductCard product={p} />
+            </motion.div>
+          ))}
+        </div>
+        {products.filter(p => p.stock > 0).length === 0 && (
+          <p className="text-center text-gray-400 font-cairo py-10">لا توجد منتجات متاحة</p>
+        )}
+      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
