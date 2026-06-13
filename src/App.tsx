@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
+import type { Customer } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds, loadCustomersFromFirestore, listenCustomers } from './lib/ordersService';
 import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
+
+function mergeCustomers(local: Customer[], remote: Customer[]): Customer[] {
+  const localPhones = new Set(local.map(c => c.phone));
+  const merged = [...local];
+  for (const rc of remote) {
+    if (!localPhones.has(rc.phone)) {
+      merged.push(rc);
+    }
+  }
+  return merged;
+}
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import Notification from './components/Notification';
@@ -93,7 +105,7 @@ export default function App() {
   useEffect(() => {
     loadCustomersFromFirestore().then((remote) => {
       if (remote.length > 0) {
-        useStore.setState({ customers: remote });
+        useStore.setState(s => ({ customers: mergeCustomers(s.customers, remote) }));
       }
     });
   }, []);
@@ -101,7 +113,7 @@ export default function App() {
   // Listen for customer changes from Firestore (cross-device)
   useEffect(() => {
     const unsub = listenCustomers((remote) => {
-      useStore.setState({ customers: remote });
+      useStore.setState(s => ({ customers: mergeCustomers(s.customers, remote) }));
     });
     return unsub;
   }, []);

@@ -646,7 +646,7 @@ export const useStore = create<StoreState>()(
         set(state => ({ siteSettings: { ...state.siteSettings, ...settings } }));
       },
 
-      saveCustomer: (info) => {
+      saveCustomer: async (info) => {
         const state = get();
         let updated: Customer[];
         const exists = state.customers.find(c => c.phone === info.phone);
@@ -660,15 +660,20 @@ export const useStore = create<StoreState>()(
           updated = [...state.customers, info];
         }
         set({ customers: updated });
-        saveCustomersToFirestore(updated).catch(err => {
+        try {
+          await saveCustomersToFirestore(updated);
+        } catch (err) {
           console.error('saveCustomersToFirestore error:', err);
-        });
+        }
       },
 
       deleteCustomer: (phone) => {
-        set(state => ({
-          customers: state.customers.filter(c => c.phone !== phone),
-        }));
+        const state = get();
+        const updated = state.customers.filter(c => c.phone !== phone);
+        set({ customers: updated });
+        saveCustomersToFirestore(updated).catch(err => {
+          console.error('deleteCustomer Firestore error:', err);
+        });
       },
 
       deleteOrder: (orderId) => {

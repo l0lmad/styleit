@@ -32,7 +32,7 @@ export default function CheckoutPage() {
     setStep('payment');
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const id = placeOrder({
       userId: currentUser?.id || '',
       userName: form.name,
@@ -44,16 +44,20 @@ export default function CheckoutPage() {
       phone: form.phone,
       paymentMethod: form.paymentMethod,
     });
-    saveCustomer({
-      name: form.name,
-      phone: form.phone,
-      email: form.email || currentUser?.email,
-      address: form.address,
-      city: form.city,
-      notes: form.notes,
-      orders: [id],
-      createdAt: new Date().toISOString().split('T')[0],
-    });
+    try {
+      await saveCustomer({
+        name: form.name,
+        phone: form.phone,
+        email: form.email || currentUser?.email,
+        address: form.address,
+        city: form.city,
+        notes: form.notes,
+        orders: [id],
+        createdAt: new Date().toISOString().split('T')[0],
+      });
+    } catch (err) {
+      console.error('saveCustomer error:', err);
+    }
     setOrderId(id);
     setConfirmedTotal(total);
     setOrderItems(cart.map(i => ({
