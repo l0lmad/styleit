@@ -544,7 +544,13 @@ export default function AdminPage() {
               ))}
             </div>
             <div className="space-y-4">
-              {filteredOrders.map(order => (
+              {[...filteredOrders].sort((a, b) => {
+                const aPending = a.status === 'pending' || a.status === 'processing' || a.status === 'confirmed';
+                const bPending = b.status === 'pending' || b.status === 'processing' || b.status === 'confirmed';
+                if (aPending && !bPending) return -1;
+                if (!aPending && bPending) return 1;
+                return b.createdAt.localeCompare(a.createdAt);
+              }).map(order => (
                 <div key={order.id} className="bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all" onClick={() => { setSelectedOrderId(order.id); if (unreadOrderIds.includes(order.id)) markOrdersRead([order.id]); }}>
                   <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <div>
@@ -692,7 +698,7 @@ export default function AdminPage() {
                         </td>
                       </tr>
                     ))}
-                    {customers.map((c, i) => (
+                    {[...customers].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((c, i) => (
                       <tr key={`guest-${i}`} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setViewingCustomer({ name: c.name, orders: c.orders, phone: c.phone, email: c.email, address: c.address, city: c.city, createdAt: c.createdAt })}>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-xs">{c.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{c.name}</span></div></td>
                         <td className="px-4 py-3 text-sm font-bold text-gray-700 font-cairo" dir="ltr">{c.phone}</td>
