@@ -4,7 +4,7 @@ import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-re
 import { useStore } from '../store/useStore';
 
 export default function CheckoutPage() {
-  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings, customers } = useStore();
+  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings } = useStore();
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
   const [confirmedTotal, setConfirmedTotal] = useState(0);
@@ -92,9 +92,6 @@ export default function CheckoutPage() {
             <p className="font-black text-gray-900 font-cairo text-lg">{orderId}</p>
             <p className="text-sm font-bold text-pink-600 font-cairo mt-1">الإجمالي: {confirmedTotal.toLocaleString()} جنيه</p>
             <p className="text-xs text-gray-500 font-cairo mt-1">طريقة الدفع: {form.paymentMethod === 'cash' ? 'الدفع عند الاستلام' : form.paymentMethod === 'instapay' ? 'InstaPay' : 'فودافون كاش'}</p>
-            {customers.find(c => c.orders.includes(orderId)) && (
-              <p className="text-xs text-green-600 font-cairo mt-2">✅ تم تسجيل بياناتك في العملاء</p>
-            )}
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex gap-3">
