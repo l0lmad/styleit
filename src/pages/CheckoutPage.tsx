@@ -71,8 +71,10 @@ export default function CheckoutPage() {
       }
       useStore.setState({ customers: updated });
       await saveCustomersToFirestore(updated);
+      showNotification('✅ تم حفظ بيانات العميل - إجمالي العملاء: ' + updated.length, 'success');
     } catch (err) {
       console.error('saveCustomer error:', err);
+      showNotification('❌ فشل حفظ بيانات العميل: ' + String(err), 'error');
     }
     setOrderId(id);
     setConfirmedTotal(total);
