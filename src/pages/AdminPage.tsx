@@ -51,6 +51,8 @@ export default function AdminPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [customerSearch, setCustomerSearch] = useState('');
   const [orderFilter, setOrderFilter] = useState<Order['status'] | 'all'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -543,8 +545,21 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={orderSearch}
+                onChange={e => setOrderSearch(e.target.value)}
+                placeholder="ابحث باسم المنتج أو رقم التليفون أو رقم الطلب..."
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-xl text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300"
+              />
+            </div>
             <div className="space-y-4">
-              {[...filteredOrders].sort((a, b) => {
+              {[...filteredOrders].filter(o =>
+                !orderSearch || o.id.includes(orderSearch) || o.phone.includes(orderSearch) || o.userName.includes(orderSearch) || o.items.some(i => i.product.name.includes(orderSearch))
+              ).sort((a, b) => {
                 const aPending = a.status === 'pending' || a.status === 'processing' || a.status === 'confirmed';
                 const bPending = b.status === 'pending' || b.status === 'processing' || b.status === 'confirmed';
                 if (aPending && !bPending) return -1;
@@ -659,6 +674,17 @@ export default function AdminPage() {
                 تصدير Excel
               </button>
             </div>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={customerSearch}
+                onChange={e => setCustomerSearch(e.target.value)}
+                placeholder="ابحث باسم العميل أو رقم التليفون..."
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-xl text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300"
+              />
+            </div>
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -670,7 +696,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {users.filter(u => u.role === 'customer').map(u => (
+                    {users.filter(u => u.role === 'customer').filter(u => !customerSearch || u.name.includes(customerSearch) || u.email.includes(customerSearch)).map(u => (
                       <tr key={u.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setViewingCustomer({ name: u.name, orders: orders.filter(o => o.userId === u.id).map(o => o.id), email: u.email, createdAt: u.createdAt })}>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-black text-xs">{u.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{u.name}</span></div></td>
                         <td className="px-4 py-3 text-sm text-gray-500 font-cairo">—</td>
@@ -698,7 +724,7 @@ export default function AdminPage() {
                         </td>
                       </tr>
                     ))}
-                    {[...customers].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((c, i) => (
+                    {[...customers].filter(c => !customerSearch || c.name.includes(customerSearch) || c.phone.includes(customerSearch)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((c, i) => (
                       <tr key={`guest-${i}`} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setViewingCustomer({ name: c.name, orders: c.orders, phone: c.phone, email: c.email, address: c.address, city: c.city, createdAt: c.createdAt })}>
                         <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-xs">{c.name[0]}</div><span className="text-sm font-semibold text-gray-900 font-cairo">{c.name}</span></div></td>
                         <td className="px-4 py-3 text-sm font-bold text-gray-700 font-cairo" dir="ltr">{c.phone}</td>
