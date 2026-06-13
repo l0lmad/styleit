@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-react';
-import { useStore, type Customer } from '../store/useStore';
-import { saveCustomersToFirestore } from '../lib/ordersService';
+import { useStore } from '../store/useStore';
 
 export default function CheckoutPage() {
   const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings } = useStore();
@@ -45,37 +44,18 @@ export default function CheckoutPage() {
       phone: form.phone,
       paymentMethod: form.paymentMethod,
     });
-    // Save customer data directly
-    try {
-      const s = useStore.getState();
-      const info = {
-        name: form.name,
-        phone: form.phone,
-        email: form.email || currentUser?.email || '',
-        address: form.address,
-        city: form.city,
-        notes: form.notes,
-        orders: [id],
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      const exists = s.customers.find((c: Customer) => c.phone === info.phone);
-      let updated: Customer[];
-      if (exists) {
-        updated = s.customers.map((c: Customer) =>
-          c.phone === info.phone
-            ? { ...c, orders: [...new Set([...c.orders, ...info.orders])], name: info.name, email: info.email || c.email, address: info.address, city: info.city, notes: info.notes || c.notes }
-            : c
-        );
-      } else {
-        updated = [...s.customers, info];
-      }
-      useStore.setState({ customers: updated });
-      await saveCustomersToFirestore(updated);
-      showNotification('✅ تم حفظ بيانات العميل - إجمالي العملاء: ' + updated.length, 'success');
-    } catch (err) {
-      console.error('saveCustomer error:', err);
-      showNotification('❌ فشل حفظ بيانات العميل: ' + String(err), 'error');
-    }
+    // Save customer data
+    const info = {
+      name: form.name,
+      phone: form.phone,
+      email: form.email || currentUser?.email || '',
+      address: form.address,
+      city: form.city,
+      notes: form.notes,
+      orders: [id],
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    useStore.getState().saveCustomer(info);
     setOrderId(id);
     setConfirmedTotal(total);
     setOrderItems(cart.map(i => ({
@@ -128,26 +108,6 @@ export default function CheckoutPage() {
                 الرئيسية
               </button>
             </div>
-            <button
-              onClick={() => {
-                const orderData = {
-                  userId: '',
-                  userName: form.name,
-                  userEmail: form.email,
-                  items: orderItems,
-                  total: confirmedTotal,
-                  status: 'pending',
-                  address: `${form.address}, ${form.city}`,
-                  phone: form.phone,
-                  paymentMethod: form.paymentMethod,
-                };
-                navigator.clipboard.writeText(JSON.stringify(orderData));
-                showNotification('تم نسخ بيانات الطلب، أرسلها للمدير', 'info');
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-bold font-cairo text-sm hover:bg-blue-100 transition-all"
-            >
-              📋 نسخ بيانات الطلب (أرسلها للمدير)
-            </button>
             {siteSettings.whatsappNumber && (
               <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد رقم ${orderId}
 العميل: ${form.name}
