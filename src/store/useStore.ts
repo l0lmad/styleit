@@ -109,6 +109,7 @@ export interface SiteSettings {
   instapayAccount: string;
   vodafoneAccount: string;
   whatsappNumber: string;
+  whatsappNotificationNumber: string;
   orderTrackingMessage: string;
 }
 
@@ -458,6 +459,7 @@ export const useStore = create<StoreState>()(
         vodafoneAccount: '01000000000',
         vodafoneName: 'Wara Wear',
         whatsappNumber: '01000000000',
+        whatsappNotificationNumber: '01000000000',
         orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
       },
 
