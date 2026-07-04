@@ -64,9 +64,11 @@ export default function HomePage() {
           <div className="absolute bottom-10 right-20 w-60 h-60 rounded-full blur-3xl" style={{ backgroundColor: siteSettings.primaryColor }} />
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center opacity-[0.06] pointer-events-none overflow-hidden">
-          <img src={logoSrc} alt="" className="w-full h-full object-cover scale-150" />
-        </div>
+        {siteSettings.showHeroWatermark && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none overflow-hidden">
+            <img src={logoSrc} alt="" className="w-full h-full object-contain scale-[2]" />
+          </div>
+        )}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -258,9 +260,11 @@ export default function HomePage() {
           className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
-          <div className="absolute inset-0 opacity-10 overflow-hidden">
-            <img src={logoSrc} alt="" className="w-full h-full object-cover scale-150" />
-          </div>
+          {siteSettings.showSaleWatermark && (
+            <div className="absolute inset-0 opacity-10 overflow-hidden flex items-center justify-center">
+              <img src={logoSrc} alt="" className="w-full h-full object-contain scale-[2]" />
+            </div>
+          )}
           <div className="relative">
             <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
               <Tag className="w-4 h-4" /> {siteSettings.saleBannerBadge}

@@ -122,6 +122,8 @@ export interface SiteSettings {
   customerNotifyTemplate: string;
   coupons: Coupon[];
   orderTrackingMessage: string;
+  showHeroWatermark: boolean;
+  showSaleWatermark: boolean;
 }
 
 export const COLOR_NAMES: Record<string, string> = {
@@ -748,7 +750,9 @@ export const useStore = create<StoreState>()(
         if (!persisted.siteSettings?.orderTrackingMessage) {
           persisted.siteSettings = {
             ...persisted.siteSettings,
-            orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
+        orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
+        showHeroWatermark: true,
+        showSaleWatermark: true,
           };
         }
         if (!persisted.siteSettings?.footerQuickLinks) {

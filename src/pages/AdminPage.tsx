@@ -1627,6 +1627,8 @@ export default function AdminPage() {
                   { key: 'showFeatured', label: 'المنتجات المميزة' },
                   { key: 'showNewArrivals', label: 'وصل حديثاً' },
                   { key: 'showSaleBanner', label: 'بانر التخفيضات' },
+                  { key: 'showHeroWatermark', label: 'شعار مائي في الهيرو' },
+                  { key: 'showSaleWatermark', label: 'شعار مائي في البانر' },
                 ].map(item => (
                   <label key={item.key} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer">
                     <input type="checkbox" checked={siteSettings[item.key as keyof typeof siteSettings] as boolean}
