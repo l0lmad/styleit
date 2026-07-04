@@ -106,7 +106,7 @@ export default function HomePage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative overflow-hidden"
+            className="relative overflow-hidden -mr-4 md:-mr-10"
           >
             <div className="relative z-10">
               <AnimatePresence mode="wait">
