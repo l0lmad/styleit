@@ -4,7 +4,7 @@ import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-re
 import { useStore } from '../store/useStore';
 
 export default function CheckoutPage() {
-  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings } = useStore();
+  const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings, appliedCoupon } = useStore();
   const [step, setStep] = useState<'info' | 'payment' | 'success'>('info');
   const [orderId, setOrderId] = useState('');
   const [confirmedTotal, setConfirmedTotal] = useState(0);
@@ -20,8 +20,10 @@ export default function CheckoutPage() {
   });
 
   const subtotal = cart.reduce((a, i) => a + i.product.price * i.quantity, 0);
-  const shipping = subtotal >= 500 ? 0 : 50;
-  const total = subtotal + shipping;
+  const couponDiscount = appliedCoupon?.discount || 0;
+  const afterDiscount = subtotal - couponDiscount;
+  const shipping = afterDiscount >= 500 ? 0 : 50;
+  const total = afterDiscount + shipping;
 
   const handleSubmitInfo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -355,6 +357,12 @@ ${itemsList}
                   <span>المجموع الفرعي</span>
                   <span>{subtotal.toLocaleString()} جنيه</span>
                 </div>
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm font-cairo text-red-500">
+                    <span>خصم الكوبون</span>
+                    <span className="font-bold">-{couponDiscount.toLocaleString()} ج</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
                   <span>الشحن</span>
                   <span className={shipping === 0 ? 'text-green-600 font-bold' : ''}>{shipping === 0 ? 'مجاني 🎉' : `${shipping} جنيه`}</span>

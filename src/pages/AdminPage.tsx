@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Plus,
-  Edit2, Trash2, Search, Check, X, AlertTriangle,
+  Edit2, Trash2, Search, Check, X, AlertTriangle, Tag,
   BarChart2, DollarSign, ShoppingCart, UserCheck, TrendingUp, Settings, Smartphone,
   Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save, Download, Edit3
 } from 'lucide-react';
@@ -1537,6 +1537,46 @@ export default function AdminPage() {
                 rows={3}
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
               />
+            </div>
+
+            {/* Coupons */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-pink-500" /> أكواد الخصم
+              </h2>
+              <div className="space-y-3">
+                {(stagedSettings.coupons || []).map((c, i) => (
+                  <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-xl p-3">
+                    <input value={c.code} onChange={e => {
+                      const cp = [...(stagedSettings.coupons || [])];
+                      cp[i] = { ...cp[i], code: e.target.value };
+                      updateStagedSettings({ coupons: cp });
+                    }} placeholder="الكود" className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                    <select value={c.type} onChange={e => {
+                      const cp = [...(stagedSettings.coupons || [])];
+                      cp[i] = { ...cp[i], type: e.target.value as 'percentage' | 'fixed' };
+                      updateStagedSettings({ coupons: cp });
+                    }} className="border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300">
+                      <option value="percentage">نسبة %</option>
+                      <option value="fixed">مبلغ ثابت</option>
+                    </select>
+                    <input type="number" value={c.value} onChange={e => {
+                      const cp = [...(stagedSettings.coupons || [])];
+                      cp[i] = { ...cp[i], value: Number(e.target.value) };
+                      updateStagedSettings({ coupons: cp });
+                    }} placeholder="القيمة" className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                    <span className="text-xs text-gray-400 font-cairo">{c.type === 'percentage' ? '%' : 'ج'}</span>
+                    <button onClick={() => updateStagedSettings({ coupons: (stagedSettings.coupons || []).filter((_, j) => j !== i) })}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button onClick={() => updateStagedSettings({ coupons: [...(stagedSettings.coupons || []), { code: '', type: 'percentage' as const, value: 0 }] })}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
+                  <Plus className="w-4 h-4" /> إضافة كود خصم
+                </button>
+              </div>
             </div>
 
             {/* Visibility Toggles */}

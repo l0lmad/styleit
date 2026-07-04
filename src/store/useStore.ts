@@ -74,6 +74,12 @@ export interface User {
   createdAt: string;
 }
 
+export interface Coupon {
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+}
+
 export interface SiteSettings {
   heroTitle: string;
   heroBadge: string;
@@ -110,6 +116,7 @@ export interface SiteSettings {
   vodafoneAccount: string;
   whatsappNumber: string;
   whatsappNotificationNumber: string;
+  coupons: Coupon[];
   orderTrackingMessage: string;
 }
 
@@ -176,6 +183,9 @@ interface StoreState {
   removeFromCart: (productId: string, size: Size, color: string) => void;
   updateCartQty: (productId: string, size: Size, color: string, qty: number) => void;
   clearCart: () => void;
+  appliedCoupon: { code: string; discount: number } | null;
+  applyCoupon: (code: string) => boolean;
+  removeCoupon: () => void;
 
   // Wishlist
   toggleWishlist: (productId: string) => void;
@@ -395,6 +405,7 @@ export const useStore = create<StoreState>()(
       users: defaultUsers,
       products: [],
       cart: [],
+      appliedCoupon: null,
       orders: [],
       unreadOrderIds: [],
       searchQuery: '',
@@ -460,6 +471,9 @@ export const useStore = create<StoreState>()(
         vodafoneName: 'Style It',
         whatsappNumber: '01000000000',
         whatsappNotificationNumber: '01000000000',
+        coupons: [
+          { code: 'SAVE10', type: 'percentage', value: 10 },
+        ],
         orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
       },
 
@@ -566,7 +580,18 @@ export const useStore = create<StoreState>()(
           ),
         })),
 
-      clearCart: () => set({ cart: [] }),
+      clearCart: () => set({ cart: [], appliedCoupon: null }),
+
+      applyCoupon: (code) => {
+        const state = get();
+        const coupon = state.siteSettings.coupons.find(c => c.code.toUpperCase() === code.toUpperCase().trim());
+        if (!coupon) return false;
+        const subtotal = state.cart.reduce((a, i) => a + i.product.price * i.quantity, 0);
+        const discount = coupon.type === 'percentage' ? subtotal * (coupon.value / 100) : coupon.value;
+        set({ appliedCoupon: { code: coupon.code, discount: Math.min(discount, subtotal) } });
+        return true;
+      },
+      removeCoupon: () => set({ appliedCoupon: null }),
 
       toggleWishlist: (productId) => {
         const user = get().currentUser;
@@ -768,6 +793,7 @@ export const useStore = create<StoreState>()(
         products: state.products,
         productsUpdatedAt: state.productsUpdatedAt,
         cart: state.cart,
+        appliedCoupon: state.appliedCoupon,
         orders: state.orders,
         unreadOrderIds: state.unreadOrderIds,
         customers: state.customers,

@@ -1,17 +1,21 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Tag, Check, X as XIcon } from 'lucide-react';
 import { useStore, getColorLabel } from '../store/useStore';
 
 export default function Cart() {
   const {
     cart, isCartOpen, setIsCartOpen, removeFromCart,
-    updateCartQty, clearCart, setActivePage
+    updateCartQty, clearCart, setActivePage, siteSettings,
+    appliedCoupon, applyCoupon, removeCoupon, showNotification
   } = useStore();
+  const [couponInput, setCouponInput] = useState('');
 
-  const total = cart.reduce((a, i) => a + i.product.price * i.quantity, 0);
-  const discount = cart.reduce(
+  const subtotal = cart.reduce((a, i) => a + i.product.price * i.quantity, 0);
+  const saleDiscount = cart.reduce(
     (a, i) => a + ((i.product.oldPrice || i.product.price) - i.product.price) * i.quantity, 0
   );
+  const total = appliedCoupon ? subtotal - appliedCoupon.discount : subtotal;
 
   return (
     <AnimatePresence>
@@ -137,15 +141,53 @@ export default function Cart() {
             {/* Footer */}
             {cart.length > 0 && (
               <div className="p-4 border-t border-gray-100 space-y-3 bg-gray-50">
-                {discount > 0 && (
+                {/* Coupon */}
+                <div>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-bold text-green-700 font-cairo">{appliedCoupon.code}</span>
+                        <span className="text-xs text-green-500 font-cairo">-{appliedCoupon.discount.toLocaleString()} ج</span>
+                      </div>
+                      <button onClick={removeCoupon} className="text-red-400 hover:text-red-600">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input type="text" value={couponInput} onChange={e => setCouponInput(e.target.value)}
+                        placeholder="كود الخصم"
+                        className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                      <button onClick={() => {
+                        if (applyCoupon(couponInput)) {
+                          showNotification('✅ تم تطبيق الكود بنجاح!');
+                          setCouponInput('');
+                        } else {
+                          showNotification('❌ كود الخصم غير صالح', 'error');
+                        }
+                      }}
+                        className="px-4 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-bold font-cairo hover:bg-pink-600 transition-all">
+                        تطبيق
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {saleDiscount > 0 && (
                   <div className="flex justify-between text-sm font-cairo text-green-600">
                     <span>وفرت</span>
-                    <span className="font-bold">{discount.toLocaleString()} جنيه</span>
+                    <span className="font-bold">{saleDiscount.toLocaleString()} ج</span>
+                  </div>
+                )}
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm font-cairo text-red-500">
+                    <span>خصم الكوبون</span>
+                    <span className="font-bold">-{appliedCoupon.discount.toLocaleString()} ج</span>
                   </div>
                 )}
                 <div className="flex justify-between font-cairo">
                   <span className="text-gray-600">الإجمالي</span>
-                  <span className="font-bold text-gray-900 text-lg">{total.toLocaleString()} جنيه</span>
+                  <span className="font-bold text-gray-900 text-lg">{Math.max(0, total).toLocaleString()} ج</span>
                 </div>
                 <button
                   onClick={() => { setActivePage('checkout'); setIsCartOpen(false); }}
