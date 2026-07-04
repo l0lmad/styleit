@@ -1104,6 +1104,19 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Logo URL */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-pink-500" /> شعار الموقع
+              </h2>
+              <div>
+                <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">رابط الشعار</label>
+                <input value={stagedSettings.logoUrl || ''} onChange={e => updateStagedSettings({ logoUrl: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" dir="ltr" placeholder="https://example.com/logo.png" />
+                <p className="text-xs text-gray-400 font-cairo mt-1">ضع رابط صورة عشان تغير الشعار. لو سيبه فاضي، هيستخدم الشعار الافتراضي.</p>
+              </div>
+            </div>
+
             {/* All Product Images */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">

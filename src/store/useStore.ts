@@ -124,6 +124,7 @@ export interface SiteSettings {
   orderTrackingMessage: string;
   showHeroWatermark: boolean;
   showSaleWatermark: boolean;
+  logoUrl: string;
 }
 
 export const COLOR_NAMES: Record<string, string> = {
@@ -751,8 +752,14 @@ export const useStore = create<StoreState>()(
           persisted.siteSettings = {
             ...persisted.siteSettings,
         orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
-        showHeroWatermark: true,
-        showSaleWatermark: true,
+          };
+        }
+        if (persisted.siteSettings?.showHeroWatermark === undefined) {
+          persisted.siteSettings = {
+            ...persisted.siteSettings,
+            showHeroWatermark: true,
+            showSaleWatermark: true,
+            logoUrl: '',
           };
         }
         if (!persisted.siteSettings?.footerQuickLinks) {

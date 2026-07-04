@@ -55,6 +55,8 @@ export default function HomePage() {
     'دعم متواصل': { icon: <HeadphonesIcon className="w-6 h-6" />, color: 'text-purple-500 bg-purple-50' },
   };
 
+  const logoSrcFinal = siteSettings.logoUrl || logoSrc;
+
   return (
     <div className="min-h-screen bg-gray-50" style={{ '--primary': siteSettings.primaryColor, '--secondary': siteSettings.secondaryColor } as React.CSSProperties}>
       {/* Hero Section */}
@@ -65,9 +67,9 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
         {siteSettings.showHeroWatermark && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none overflow-hidden">
-            <img src={logoSrc} alt="" className="w-full h-full object-contain scale-[2]" />
-          </div>
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'contain', opacity: 0.06 }}
+          />
         )}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
           <motion.div
@@ -261,9 +263,9 @@ export default function HomePage() {
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
           {siteSettings.showSaleWatermark && (
-            <div className="absolute inset-0 opacity-10 overflow-hidden flex items-center justify-center">
-              <img src={logoSrc} alt="" className="w-full h-full object-contain scale-[2]" />
-            </div>
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'contain', opacity: 0.1 }}
+            />
           )}
           <div className="relative">
             <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
