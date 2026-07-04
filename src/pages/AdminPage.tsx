@@ -1525,24 +1525,38 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Telegram */}
+            {/* واتساب بزنس API */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-500" /> إعدادات تيليجرام
+                <Bell className="w-5 h-5 text-green-500" /> واتساب بزنس API — إعدادات الإشعارات التلقائية
               </h2>
-              <p className="text-sm text-gray-500 font-cairo mb-3">الإشعارات هتتبعت عن طريق بوت تيليجرام بدل واتساب</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">توكن البوت</label>
-                  <input value={stagedSettings.telegramToken || ''} onChange={e => updateStagedSettings({ telegramToken: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" dir="ltr" />
-                  <p className="text-xs text-gray-400 font-cairo mt-1">من @BotFather في تيليجرام</p>
+              <p className="text-sm text-gray-500 font-cairo mb-3">استخدم واتساب بزنس API عشان الموقع يبعت الإشعارات تلقائياً (بدون ما تفتح واتساب). هتحتاج تعمل واتساب بزنس أكونت من business.facebook.com. لو مش متاح، سيبه فاضي وهيشتغل عادي.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">توكن واتساب بزنس</label>
+                    <input value={stagedSettings.whatsappBusinessToken || ''} onChange={e => updateStagedSettings({ whatsappBusinessToken: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" dir="ltr" placeholder="EAAx..." />
+                    <p className="text-xs text-gray-400 font-cairo mt-1">Permanent Access Token من فيسبوك ديفيلوبرز</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">معرف رقم الهاتف</label>
+                    <input value={stagedSettings.whatsappPhoneNumberId || ''} onChange={e => updateStagedSettings({ whatsappPhoneNumberId: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" placeholder="123456789" />
+                    <p className="text-xs text-gray-400 font-cairo mt-1">Phone Number ID من واتساب بزنس API</p>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">معرف المحادثة (Chat ID)</label>
-                  <input value={stagedSettings.telegramChatId || ''} onChange={e => updateStagedSettings({ telegramChatId: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
-                  <p className="text-xs text-gray-400 font-cairo mt-1">ابعت /start للبوت وافتح <span className="font-mono text-blue-500">api.telegram.org/bot&lt;التوكن&gt;/getUpdates</span></p>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص رسالة الإشعار للمسؤول</label>
+                  <textarea value={stagedSettings.adminNotifyTemplate || ''} onChange={e => updateStagedSettings({ adminNotifyTemplate: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" rows={6} dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">المتغيرات: <span className="font-mono text-blue-500">{'{orderId}'}, {'{customerName}'}, {'{customerPhone}'}, {'{customerAddress}'}, {'{paymentMethod}'}, {'{total}'}, {'{items}'}</span></p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">نص رسالة التأكيد للعميل</label>
+                  <textarea value={stagedSettings.customerNotifyTemplate || ''} onChange={e => updateStagedSettings({ customerNotifyTemplate: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" rows={6} dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">المتغيرات: <span className="font-mono text-blue-500">{'{orderId}'}, {'{customerName}'}, {'{total}'}, {'{paymentMethod}'}, {'{items}'}</span></p>
                 </div>
               </div>
             </div>

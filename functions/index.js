@@ -5,69 +5,97 @@ import { getFirestore } from 'firebase-admin/firestore';
 initializeApp();
 const db = getFirestore();
 
-export const sendOrderToTelegram = onDocumentCreated('orders/{orderId}', async (event) => {
+function fillTemplate(template, data) {
+  return template
+    .replace(/\{orderId\}/g, data.orderId)
+    .replace(/\{customerName\}/g, data.customerName)
+    .replace(/\{customerPhone\}/g, data.customerPhone)
+    .replace(/\{customerAddress\}/g, data.customerAddress)
+    .replace(/\{paymentMethod\}/g, data.paymentMethod)
+    .replace(/\{total\}/g, data.total)
+    .replace(/\{items\}/g, data.items);
+}
+
+function buildItemsList(items) {
+  return (items || []).map(i =>
+    `• ${i.product.name} (${i.size} × ${i.quantity}) - ${(i.product.price * i.quantity).toLocaleString()} ج`
+  ).join('\n');
+}
+
+const paymentLabels = {
+  cash: '💰 كاش عند الاستلام',
+  instapay: '💜 InstaPay',
+  vodafone: '🔴 فودافون كاش',
+};
+
+async function sendWhatsAppMessage(token, phoneNumberId, to, message) {
+  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to: to.replace(/^\+|^00/, ''),
+      type: 'text',
+      text: { body: message },
+    }),
+  });
+  return response.json();
+}
+
+export const sendOrderToWhatsApp = onDocumentCreated('orders/{orderId}', async (event) => {
   const order = event.data.data();
   const orderId = event.params.orderId;
 
-  // Read site settings from Firestore (telegram bot token + chat id)
+  // Read site settings from Firestore
   const settingsSnap = await db.doc('settings/site').get();
   const settings = settingsSnap.data() || {};
 
-  const token = settings.telegramToken;
-  const chatId = settings.telegramChatId;
+  const token = settings.whatsappBusinessToken;
+  const phoneNumberId = settings.whatsappPhoneNumberId;
 
-  if (!token || !chatId) {
-    console.log('❌ Telegram bot not configured (set telegramToken + telegramChatId in settings)');
+  if (!token || !phoneNumberId) {
+    console.log('⚠️ WhatsApp Business API not configured — skipping');
     return;
   }
 
-  // Build order items list
-  const itemsList = (order.items || []).map(i =>
-    `• ${i.product.name} (${i.size} × ${i.quantity}) - ${(i.product.price * i.quantity).toLocaleString()} ج`
-  ).join('\n');
-
-  const paymentLabels = {
-    cash: '💰 كاش عند الاستلام',
-    instapay: '💜 InstaPay',
-    vodafone: '🔴 فودافون كاش',
-  };
-
+  const itemsList = buildItemsList(order.items);
   const paymentLabel = paymentLabels[order.paymentMethod] || order.paymentMethod;
 
-  // Telegram supports MarkdownV2 – but simple markdown works without escaping
-  const message = `🛍 <b>طلب جديد #${orderId}</b>
-━━━━━━━━━━━━━━━
-👤 <b>العميل:</b> ${order.userName}
-📞 <b>التليفون:</b> ${order.phone}
-📍 <b>العنوان:</b> ${order.address}
-📧 <b>الإيميل:</b> ${order.userEmail || '—'}
-💳 <b>الدفع:</b> ${paymentLabel}
-💰 <b>الإجمالي:</b> ${order.total.toLocaleString()} ج
-━━━━━━━━━━━━━━━
-<b>المنتجات:</b>
-${itemsList}
-━━━━━━━━━━━━━━━
-✅ تم تقديم الطلب بنجاح`;
+  const templateData = {
+    orderId,
+    customerName: order.userName || '',
+    customerPhone: order.phone || '',
+    customerAddress: order.address || '',
+    paymentMethod: paymentLabel,
+    total: (order.total || 0).toLocaleString(),
+    items: itemsList,
+  };
 
-  try {
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
-    const result = await response.json();
-    if (result.ok) {
-      console.log('✅ Telegram message sent');
-    } else {
-      console.error('❌ Telegram API error:', result);
+  // Send to admin
+  const adminNumber = settings.whatsappNotificationNumber || settings.whatsappNumber;
+  if (adminNumber) {
+    const adminMsg = fillTemplate(settings.adminNotifyTemplate || '', templateData);
+    try {
+      const result = await sendWhatsAppMessage(token, phoneNumberId, adminNumber, adminMsg);
+      console.log('✅ Admin notification sent:', result);
+    } catch (err) {
+      console.error('❌ Admin notification failed:', err.message);
     }
-  } catch (error) {
-    console.error('❌ Telegram request failed:', error.message);
+  }
+
+  // Send to customer
+  const customerNumber = order.phone;
+  if (customerNumber && settings.customerNotifyTemplate) {
+    const customerMsg = fillTemplate(settings.customerNotifyTemplate, templateData);
+    try {
+      const result = await sendWhatsAppMessage(token, phoneNumberId, customerNumber, customerMsg);
+      console.log('✅ Customer confirmation sent:', result);
+    } catch (err) {
+      console.error('❌ Customer confirmation failed:', err.message);
+    }
   }
 });

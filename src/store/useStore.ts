@@ -116,8 +116,10 @@ export interface SiteSettings {
   vodafoneAccount: string;
   whatsappNumber: string;
   whatsappNotificationNumber: string;
-  telegramToken: string;
-  telegramChatId: string;
+  whatsappBusinessToken: string;
+  whatsappPhoneNumberId: string;
+  adminNotifyTemplate: string;
+  customerNotifyTemplate: string;
   coupons: Coupon[];
   orderTrackingMessage: string;
 }
@@ -473,8 +475,10 @@ export const useStore = create<StoreState>()(
         vodafoneName: 'Style It',
         whatsappNumber: '01000000000',
         whatsappNotificationNumber: '01000000000',
-        telegramToken: '',
-        telegramChatId: '',
+        whatsappBusinessToken: '',
+        whatsappPhoneNumberId: '',
+        adminNotifyTemplate: '🛍 طلب جديد #{orderId}\n━━━━━━━━━━━━━━━\n👤 العميل: {customerName}\n📞 التليفون: {customerPhone}\n📍 العنوان: {customerAddress}\n💳 الدفع: {paymentMethod}\n💰 الإجمالي: {total} ج\n━━━━━━━━━━━━━━━\n📦 المنتجات:\n{items}\n━━━━━━━━━━━━━━━\n✅ Style It',
+        customerNotifyTemplate: '🎉 شكراً لطلبك من Style It!\n━━━━━━━━━━━━━━━\n📋 رقم الطلب: #{orderId}\n💰 الإجمالي: {total} ج\n💳 الدفع: {paymentMethod}\n━━━━━━━━━━━━━━━\n📦 المنتجات:\n{items}\n━━━━━━━━━━━━━━━\nسيتم تأكيد طلبك قريباً 📞',
         coupons: [
           { code: 'SAVE10', type: 'percentage', value: 10 },
         ],
