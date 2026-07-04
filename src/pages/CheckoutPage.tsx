@@ -108,18 +108,30 @@ export default function CheckoutPage() {
                 الرئيسية
               </button>
             </div>
-            {siteSettings.whatsappNumber && (
-              <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد رقم ${orderId}
-العميل: ${form.name}
-العنوان: ${form.address}, ${form.city}
-التليفون: ${form.phone}
-الإجمالي: ${confirmedTotal} جنيه
-طريقة الدفع: ${form.paymentMethod === 'cash' ? 'كاش' : form.paymentMethod === 'instapay' ? 'InstaPay' : 'فودافون كاش'}`)}`} target="_blank" rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl font-bold font-cairo text-sm hover:bg-green-100 transition-all"
-              >
-                💬 أرسل الطلب عبر واتساب
-              </a>
-            )}
+            {siteSettings.whatsappNumber && (() => {
+              const itemsList = orderItems.map(i => `• ${i.product.name} (${i.size} × ${i.quantity}) - ${(i.product.price * i.quantity).toLocaleString()} ج`).join('\n');
+              const paymentLabel = form.paymentMethod === 'cash' ? '💰 كاش عند الاستلام' : form.paymentMethod === 'instapay' ? '💜 InstaPay' : '🔴 فودافون كاش';
+              const msg = `🛍 *طلب جديد #${orderId}*
+━━━━━━━━━━━━━━━
+👤 *العميل:* ${form.name}
+📞 *التليفون:* ${form.phone}
+📍 *العنوان:* ${form.address}, ${form.city}
+📧 *الإيميل:* ${form.email || '—'}
+📝 *ملاحظات:* ${form.notes || '—'}
+💳 *الدفع:* ${paymentLabel}
+💰 *الإجمالي:* ${confirmedTotal.toLocaleString()} ج
+━━━━━━━━━━━━━━━
+*المنتجات:*
+${itemsList}
+━━━━━━━━━━━━━━━
+✅ شكراً لطلبك من Wara Wear!`;
+              return (
+                <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200">
+                  💬 أرسل تفاصيل الطلب عبر واتساب
+                </a>
+              );
+            })()}
           </div>
         </motion.div>
       </div>
@@ -275,6 +287,7 @@ export default function CheckoutPage() {
                 {form.paymentMethod === 'instapay' && siteSettings.instapayAccount && (
                   <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
                     <p className="text-sm font-bold text-purple-700 font-cairo mb-1">حساب InstaPay للتحويل</p>
+                    <p className="text-base font-bold text-purple-800 font-cairo text-center">{siteSettings.instapayName || 'InstaPay'}</p>
                     <p className="text-lg font-black text-purple-900 font-cairo text-center" dir="ltr">{siteSettings.instapayAccount}</p>
                     <p className="text-xs text-purple-500 font-cairo mt-1 text-center">حول المبلغ على الحساب أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
                     {siteSettings.whatsappNumber && (
@@ -288,6 +301,7 @@ export default function CheckoutPage() {
                 {form.paymentMethod === 'vodafone' && siteSettings.vodafoneAccount && (
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
                     <p className="text-sm font-bold text-red-700 font-cairo mb-1">رقم فودافون كاش للتحويل</p>
+                    <p className="text-base font-bold text-red-800 font-cairo text-center">{siteSettings.vodafoneName || 'فودافون كاش'}</p>
                     <p className="text-lg font-black text-red-900 font-cairo text-center" dir="ltr">{siteSettings.vodafoneAccount}</p>
                     <p className="text-xs text-red-500 font-cairo mt-1 text-center">حول المبلغ على الرقم أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
                     {siteSettings.whatsappNumber && (

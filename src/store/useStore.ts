@@ -81,6 +81,8 @@ export interface SiteSettings {
   heroBtnText: string;
   heroBtn2Text: string;
   heroImages: string[];
+  instapayName: string;
+  vodafoneName: string;
   features: { title: string; desc: string; emoji: string }[];
   footerEmail: string;
   footerPhone: string;
@@ -452,7 +454,9 @@ export const useStore = create<StoreState>()(
         saleBannerIcon: '🏷️',
         saleBannerColor: '#f97316',
         instapayAccount: 'instapay@warawear.com',
+        instapayName: 'Wara Wear',
         vodafoneAccount: '01000000000',
+        vodafoneName: 'Wara Wear',
         whatsappNumber: '01000000000',
         orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
       },
