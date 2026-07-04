@@ -255,8 +255,8 @@ export default function HomePage() {
           className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
-          <div className="absolute inset-0 opacity-15 flex items-center justify-center">
-            <img src={logoSrc} alt="" className="w-full h-full object-contain p-12" />
+          <div className="absolute inset-0 opacity-10">
+            <img src={logoSrc} alt="" className="w-full h-full object-cover" />
           </div>
           <div className="relative">
             <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
