@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -18,6 +18,30 @@ export default function CheckoutPage() {
     notes: '',
     paymentMethod: 'cash',
   });
+
+  // Auto-open WhatsApp notification when order is placed
+  useEffect(() => {
+    if (step === 'success' && siteSettings.whatsappNotificationNumber && orderId) {
+      const itemsList = orderItems.map(i => `• ${i.product.name} (${i.size} × ${i.quantity}) - ${(i.product.price * i.quantity).toLocaleString()} ج`).join('\n');
+      const paymentLabel = form.paymentMethod === 'cash' ? '💰 كاش عند الاستلام' : form.paymentMethod === 'instapay' ? '💜 InstaPay' : '🔴 فودافون كاش';
+      const msg = `🛍 *طلب جديد #${orderId}*
+━━━━━━━━━━━━━━━
+👤 *العميل:* ${form.name}
+📞 *التليفون:* ${form.phone}
+📍 *العنوان:* ${form.address}, ${form.city}
+📧 *الإيميل:* ${form.email || '—'}
+📝 *ملاحظات:* ${form.notes || '—'}
+💳 *الدفع:* ${paymentLabel}
+💰 *الإجمالي:* ${confirmedTotal.toLocaleString()} ج
+━━━━━━━━━━━━━━━
+*المنتجات:*
+${itemsList}
+━━━━━━━━━━━━━━━
+✅ شكراً لطلبك من Style It!`;
+      const waUrl = `https://wa.me/${siteSettings.whatsappNotificationNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+  }, [step]);
 
   const subtotal = cart.reduce((a, i) => a + i.product.price * i.quantity, 0);
   const couponDiscount = appliedCoupon?.discount || 0;
