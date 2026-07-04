@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Truck, Shield, HeadphonesIcon, TrendingUp, Tag, Zap, Package } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
+import logoSrc from '../assets/logo.jpeg';
 
 export default function HomePage() {
   const { products, setActivePage, setSelectedCategory, siteSettings } = useStore();
@@ -254,12 +255,8 @@ export default function HomePage() {
           className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
-          <div className="absolute inset-0 opacity-10">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div key={i} className="absolute text-6xl" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}>
-                {siteSettings.saleBannerIcon}
-              </div>
-            ))}
+          <div className="absolute inset-0 opacity-15 flex items-center justify-center">
+            <img src={logoSrc} alt="" className="w-full h-full object-contain p-12" />
           </div>
           <div className="relative">
             <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
