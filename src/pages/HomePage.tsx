@@ -64,6 +64,9 @@ export default function HomePage() {
           <div className="absolute bottom-10 right-20 w-60 h-60 rounded-full blur-3xl" style={{ backgroundColor: siteSettings.primaryColor }} />
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
+          <img src={logoSrc} alt="" className="w-3/4 h-3/4 object-contain" />
+        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
