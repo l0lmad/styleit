@@ -68,7 +68,7 @@ export default function HomePage() {
         </div>
         {siteSettings.showHeroWatermark && (
           <div className="absolute inset-0 pointer-events-none"
-            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.06 }}
+            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: '150%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.06 }}
           />
         )}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
@@ -264,7 +264,7 @@ export default function HomePage() {
         >
           {siteSettings.showSaleWatermark && (
             <div className="absolute inset-0 pointer-events-none"
-              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.1 }}
+              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: '150%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.1 }}
             />
           )}
           <div className="relative">
