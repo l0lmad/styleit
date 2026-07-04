@@ -354,7 +354,15 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-4 gap-8">
           <div>
             <div className="mb-4">
-              <span className="text-lg font-black font-cairo">{siteSettings.footerBrand.split(' ').map((w, i) => i === 1 ? <span key={w} style={{ color: siteSettings.primaryColor }}>{w}</span> : <span key={w}>{w} </span>)}</span>
+              <span className="text-lg font-black font-cairo">
+                {siteSettings.footerBrand.split(' ').map((w, i) =>
+                  i === 0
+                    ? <span key={w} style={{ color: siteSettings.primaryColor }}>{w} </span>
+                    : i === 1
+                      ? <span key={w} style={{ color: siteSettings.secondaryColor }}>{w}</span>
+                      : <span key={w}>{w} </span>
+                )}
+              </span>
             </div>
             <p className="text-gray-400 text-sm font-cairo leading-relaxed">
               {siteSettings.footerAbout || 'متجرك الأول للأزياء العصرية. نقدم أرقى الملابس بأفضل الأسعار.'}

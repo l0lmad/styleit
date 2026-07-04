@@ -124,7 +124,7 @@ export default function CheckoutPage() {
 *المنتجات:*
 ${itemsList}
 ━━━━━━━━━━━━━━━
-✅ شكراً لطلبك من Wara Wear!`;
+✅ شكراً لطلبك من Style It!`;
               return (
                 <a href={`https://wa.me/${siteSettings.whatsappNotificationNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all shadow-lg shadow-green-200">

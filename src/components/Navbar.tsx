@@ -34,8 +34,9 @@ export default function Navbar() {
             onClick={() => setActivePage('home')}
             className="flex items-center gap-2"
           >
-            <span className="text-xl font-black text-gray-900 font-cairo">
-              Wara<span style={{ color: siteSettings.primaryColor }}>Wear</span>
+            <span className="text-xl font-black font-cairo">
+              <span style={{ color: siteSettings.primaryColor }}>Style</span>
+              <span style={{ color: siteSettings.secondaryColor }}> It</span>
             </span>
           </motion.button>
 

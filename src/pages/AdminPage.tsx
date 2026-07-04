@@ -208,7 +208,10 @@ export default function AdminPage() {
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div>
-              <p className="font-black font-cairo text-lg cursor-pointer hover:text-pink-400 transition-colors" onClick={() => setActivePage('shop')}>Wara Wear</p>
+              <p className="font-black font-cairo text-lg cursor-pointer transition-colors" onClick={() => setActivePage('shop')}>
+                <span style={{ color: siteSettings.primaryColor }}>Style</span>
+                <span style={{ color: siteSettings.secondaryColor }}> It</span>
+              </p>
               <p className="text-xs text-gray-400 font-cairo">لوحة التحكم</p>
             </div>
           </div>
@@ -586,7 +589,7 @@ export default function AdminPage() {
                       {siteSettings.whatsappNotificationNumber && (() => {
                         const itemsList = order.items.map(i => `• ${i.product.name} (${i.size} × ${i.quantity}) - ${(i.product.price * i.quantity).toLocaleString()} ج`).join('\n');
                         const paymentLabel = order.paymentMethod === 'cash' ? '💰 كاش عند الاستلام' : order.paymentMethod === 'instapay' ? '💜 InstaPay' : order.paymentMethod === 'vodafone' ? '🔴 فودافون كاش' : order.paymentMethod;
-                        const msg = `🛍 *طلب جديد #${order.id}*\n━━━━━━━━━━━━━━━\n👤 *العميل:* ${order.userName}\n📞 *التليفون:* ${order.phone}\n📍 *العنوان:* ${order.address}\n📧 *الإيميل:* ${order.userEmail || '—'}\n💳 *الدفع:* ${paymentLabel}\n💰 *الإجمالي:* ${order.total.toLocaleString()} ج\n━━━━━━━━━━━━━━━\n*المنتجات:*\n${itemsList}\n━━━━━━━━━━━━━━━\n✅ شكراً لطلبك من Wara Wear!`;
+                        const msg = `🛍 *طلب جديد #${order.id}*\n━━━━━━━━━━━━━━━\n👤 *العميل:* ${order.userName}\n📞 *التليفون:* ${order.phone}\n📍 *العنوان:* ${order.address}\n📧 *الإيميل:* ${order.userEmail || '—'}\n💳 *الدفع:* ${paymentLabel}\n💰 *الإجمالي:* ${order.total.toLocaleString()} ج\n━━━━━━━━━━━━━━━\n*المنتجات:*\n${itemsList}\n━━━━━━━━━━━━━━━\n✅ شكراً لطلبك من Style It!`;
                         return (
                           <a href={`https://wa.me/${siteSettings.whatsappNotificationNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
