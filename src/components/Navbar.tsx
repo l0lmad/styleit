@@ -4,6 +4,7 @@ import {
   ShoppingCart, Heart, Search, User, Menu, X, Shield, LogOut, Package, Home, Tag, Phone
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import logoSrc from '../assets/logo.jpeg';
 
 export default function Navbar() {
   const {
@@ -34,10 +35,7 @@ export default function Navbar() {
             onClick={() => setActivePage('home')}
             className="flex items-center gap-2"
           >
-            <span className="text-xl font-black font-cairo">
-              <span style={{ color: siteSettings.primaryColor }}>Style</span>
-              <span style={{ color: siteSettings.secondaryColor }}> It</span>
-            </span>
+            <img src={logoSrc} alt="Style It" className="h-9 w-auto" />
           </motion.button>
 
           {/* Desktop Nav */}

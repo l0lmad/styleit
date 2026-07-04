@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES } from '../store/useStore';
 import { saveCustomersToFirestore } from '../lib/ordersService';
+import logoSrc from '../assets/logo.jpeg';
 
 type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings';
 
@@ -208,10 +209,7 @@ export default function AdminPage() {
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div>
-              <p className="font-black font-cairo text-lg cursor-pointer transition-colors" onClick={() => setActivePage('shop')}>
-                <span style={{ color: siteSettings.primaryColor }}>Style</span>
-                <span style={{ color: siteSettings.secondaryColor }}> It</span>
-              </p>
+              <img src={logoSrc} alt="Style It" className="h-8 w-auto cursor-pointer" onClick={() => setActivePage('shop')} />
               <p className="text-xs text-gray-400 font-cairo">لوحة التحكم</p>
             </div>
           </div>

@@ -280,5 +280,3 @@ function ContactPage() {
     </div>
   );
 }
-
-
