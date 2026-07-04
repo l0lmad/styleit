@@ -67,8 +67,8 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
         {siteSettings.showHeroWatermark && (
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'cover', opacity: 0.06 }}
+          <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{ opacity: 0.06 }}
           />
         )}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
@@ -263,8 +263,8 @@ export default function HomePage() {
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
           {siteSettings.showSaleWatermark && (
-            <div className="absolute inset-0 pointer-events-none"
-              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'cover', opacity: 0.1 }}
+            <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{ opacity: 0.1 }}
             />
           )}
           <div className="relative">
