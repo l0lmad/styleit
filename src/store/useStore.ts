@@ -116,6 +116,8 @@ export interface SiteSettings {
   vodafoneAccount: string;
   whatsappNumber: string;
   whatsappNotificationNumber: string;
+  telegramToken: string;
+  telegramChatId: string;
   coupons: Coupon[];
   orderTrackingMessage: string;
 }
@@ -471,6 +473,8 @@ export const useStore = create<StoreState>()(
         vodafoneName: 'Style It',
         whatsappNumber: '01000000000',
         whatsappNotificationNumber: '01000000000',
+        telegramToken: '',
+        telegramChatId: '',
         coupons: [
           { code: 'SAVE10', type: 'percentage', value: 10 },
         ],

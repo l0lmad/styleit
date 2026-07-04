@@ -240,7 +240,7 @@ function ContactPage() {
               { emoji: '📞', title: 'اتصل بنا', value: '01000000000', sub: 'السبت - الخميس, 9ص - 9م' },
               { emoji: '✉️', title: 'راسلنا', value: 'info@warawear.com', sub: 'رد خلال 24 ساعة' },
               { emoji: '📍', title: 'موقعنا', value: 'القاهرة، مصر', sub: 'شارع التحرير، وسط البلد' },
-              { emoji: '💬', title: 'واتساب', value: siteSettings.whatsappNumber || '01000000000', sub: 'متاح 24/7' },
+              { emoji: '💬', title: 'واتساب', value: siteSettings.whatsappNumber || '01000000000', sub: 'متاح يومياً' },
             ].map(c => (
               <div key={c.title} className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100">
                 <span className="text-3xl">{c.emoji}</span>

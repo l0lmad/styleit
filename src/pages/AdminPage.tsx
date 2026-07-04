@@ -1525,6 +1525,28 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Telegram */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-blue-500" /> إعدادات تيليجرام
+              </h2>
+              <p className="text-sm text-gray-500 font-cairo mb-3">الإشعارات هتتبعت عن طريق بوت تيليجرام بدل واتساب</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">توكن البوت</label>
+                  <input value={stagedSettings.telegramToken || ''} onChange={e => updateStagedSettings({ telegramToken: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">من @BotFather في تيليجرام</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 font-cairo block mb-1">معرف المحادثة (Chat ID)</label>
+                  <input value={stagedSettings.telegramChatId || ''} onChange={e => updateStagedSettings({ telegramChatId: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" dir="ltr" />
+                  <p className="text-xs text-gray-400 font-cairo mt-1">ابعت /start للبوت وافتح <span className="font-mono text-blue-500">api.telegram.org/bot&lt;التوكن&gt;/getUpdates</span></p>
+                </div>
+              </div>
+            </div>
+
             {/* Order Tracking Message */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">

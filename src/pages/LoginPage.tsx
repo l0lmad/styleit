@@ -63,7 +63,7 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-xl text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 transition-all"
-                  placeholder="example@email.com"
+                  placeholder="بريدك الإلكتروني"
                   required
                 />
               </div>
