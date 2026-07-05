@@ -69,7 +69,7 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
         {siteSettings.showHeroWatermark && (
-          <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none"
             style={{ opacity: 0.06 }}
           />
         )}
@@ -265,7 +265,7 @@ export default function HomePage() {
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
           {siteSettings.showSaleWatermark && (
-            <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none"
               style={{ opacity: 0.1 }}
             />
           )}
