@@ -4,7 +4,7 @@ import { saveSettings } from '../lib/settingsService';
 import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestore, updateOrderStatusInFirestore, saveCustomersToFirestore } from '../lib/ordersService';
 import { saveAllProducts } from '../lib/productsService';
 
-export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات';
+export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات' | 'عطور' | 'مستحضرات تجميل';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
 
 export interface Product {

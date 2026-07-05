@@ -12,7 +12,7 @@ import { saveCustomersToFirestore } from '../lib/ordersService';
 
 type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings';
 
-const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const;
+const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات', 'عطور', 'مستحضرات تجميل'] as const;
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 
 const STATUS_LABELS: Record<Order['status'], string> = {
@@ -880,10 +880,10 @@ export default function AdminPage() {
                 <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
                   <BarChart2 className="w-5 h-5 text-pink-500" /> المبيعات حسب الفئة
                 </h2>
-                {(['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const).map(cat => {
+                {([...CATEGORIES] as const).map(cat => {
                   const catOrders = filteredOrders.flatMap(o => o.items.filter(i => i.product.category === cat));
                   const catRevenue = catOrders.reduce((a, i) => a + i.product.price * i.quantity, 0);
-                  const maxRevenue = Math.max(...(['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات'] as const).map(c =>
+                  const maxRevenue = Math.max(...([...CATEGORIES] as const).map(c =>
                     filteredOrders.flatMap(o => o.items.filter(i => i.product.category === c)).reduce((a, i) => a + i.product.price * i.quantity, 0)
                   ), 1);
                   return (

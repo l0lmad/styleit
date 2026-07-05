@@ -44,6 +44,8 @@ export default function HomePage() {
     { name: 'أطفال', emoji: '🧒', color: 'from-yellow-400 to-orange-500', count: products.filter(p => p.category === 'أطفال' && p.stock > 0).length },
     { name: 'رياضي', emoji: '🏋️', color: 'from-green-400 to-emerald-600', count: products.filter(p => p.category === 'رياضي' && p.stock > 0).length },
     { name: 'اكسسوارات', emoji: '👜', color: 'from-purple-400 to-purple-600', count: products.filter(p => p.category === 'اكسسوارات' && p.stock > 0).length },
+    { name: 'عطور', emoji: '🧴', color: 'from-amber-400 to-amber-600', count: products.filter(p => p.category === 'عطور' && p.stock > 0).length },
+    { name: 'مستحضرات تجميل', emoji: '💄', color: 'from-rose-400 to-rose-600', count: products.filter(p => p.category === 'مستحضرات تجميل' && p.stock > 0).length },
   ];
 
   const featuresMap: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -196,7 +198,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-black text-gray-900 font-cairo mb-2">تسوق حسب الفئة</h2>
           <p className="text-gray-500 font-cairo">اختر من بين أرقى التشكيلات</p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {categories.filter(c => c.count > 0).map((cat, i) => (
             <motion.button
               key={cat.name}

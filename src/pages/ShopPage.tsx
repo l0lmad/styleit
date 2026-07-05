@@ -11,6 +11,8 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'أطفال', label: 'أطفال 🧒' },
   { value: 'رياضي', label: 'رياضي 🏋️' },
   { value: 'اكسسوارات', label: 'اكسسوارات 👜' },
+  { value: 'عطور', label: 'عطور 🧴' },
+  { value: 'مستحضرات تجميل', label: 'مستحضرات تجميل 💄' },
 ];
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
