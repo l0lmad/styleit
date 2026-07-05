@@ -60,18 +60,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50" style={{ '--primary': siteSettings.primaryColor, '--secondary': siteSettings.secondaryColor } as React.CSSProperties}>
       {/* Hero Section */}
-      <section className="relative overflow-hidden text-white" style={{ background: `linear-gradient(135deg, ${siteSettings.primaryColor}, ${siteSettings.secondaryColor}, #4338ca)` }}>
+      <section className="relative overflow-hidden text-white w-full max-w-full" style={{ background: `linear-gradient(135deg, ${siteSettings.primaryColor}, ${siteSettings.secondaryColor}, #4338ca)` }}>
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-20 w-60 h-60 rounded-full blur-3xl" style={{ backgroundColor: siteSettings.primaryColor }} />
           <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: siteSettings.secondaryColor }} />
         </div>
         {siteSettings.showHeroWatermark && (
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.06 }}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
+            style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.06, width: '100%', maxWidth: '100vw', overflow: 'hidden' }}
           />
         )}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center w-full overflow-hidden">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -110,7 +110,7 @@ export default function HomePage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative overflow-hidden -mr-4 md:-mr-10"
+            className="relative overflow-hidden"
           >
             <div className="relative z-10">
               <AnimatePresence mode="wait">
@@ -121,10 +121,10 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-3xl md:rounded-[2rem] overflow-hidden shadow-2xl cursor-pointer ring-2 ring-white/30 hover:ring-white/50 transition-all relative"
+                    className="rounded-3xl md:rounded-[2rem] overflow-hidden shadow-2xl cursor-pointer ring-2 ring-white/30 hover:ring-white/50 transition-all relative max-w-full"
                     onClick={() => setActivePage(`product-${heroSlides[currentSlideIndex]?.productId}`)}
                   >
-                    <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-64 sm:h-80 md:h-[28rem] object-cover" />
+                    <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-64 sm:h-80 md:h-[28rem] object-cover max-w-full" />
                     {heroSlides[currentSlideIndex] && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
                         <p className="text-white font-bold font-cairo text-xl md:text-2xl">{heroSlides[currentSlideIndex].productName}</p>
@@ -254,7 +254,7 @@ export default function HomePage() {
 
       {/* Sale Banner */}
       {siteSettings.showSaleBanner && (
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full overflow-hidden">
         <motion.div
           whileInView={{ opacity: 1, scale: 1 }}
           initial={{ opacity: 0, scale: 0.95 }}
@@ -263,8 +263,8 @@ export default function HomePage() {
           style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
         >
           {siteSettings.showSaleWatermark && (
-            <div className="absolute inset-0 pointer-events-none"
-              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.1 }}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
+              style={{ backgroundImage: `url(${logoSrcFinal})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', opacity: 0.1, maxWidth: '100%' }}
             />
           )}
           <div className="relative">
