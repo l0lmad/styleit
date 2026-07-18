@@ -32,10 +32,16 @@ export async function saveSettings(settings: Partial<SiteSettings>): Promise<voi
 
 export function subscribeSettings(callback: (settings: Partial<SiteSettings>) => void): () => void {
   const docRef = doc(db, 'settings', SETTINGS_ID);
-  return onSnapshot(docRef, (docSnap) => {
-    if (docSnap.exists()) {
-      console.log('🔄 Firebase: real-time update received');
-      callback(docSnap.data() as Partial<SiteSettings>);
+  return onSnapshot(
+    docRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        console.log('🔄 Firebase: real-time update received');
+        callback(docSnap.data() as Partial<SiteSettings>);
+      }
+    },
+    (error) => {
+      console.error('❌ Firebase: onSnapshot settings ERROR', error);
     }
-  });
+  );
 }

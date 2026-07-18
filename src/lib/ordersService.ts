@@ -39,20 +39,32 @@ export async function loadUnreadIdsFromFirestore(): Promise<string[]> {
 
 export function listenOrders(callback: (orders: Order[]) => void): () => void {
   const q = query(collection(db, 'orders'));
-  return onSnapshot(q, (snapshot) => {
-    const orders: Order[] = [];
-    snapshot.forEach((d) => orders.push(d.data() as Order));
-    callback(orders);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const orders: Order[] = [];
+      snapshot.forEach((d) => orders.push(d.data() as Order));
+      callback(orders);
+    },
+    (error) => {
+      console.error('❌ Firestore: onSnapshot orders ERROR', error);
+    }
+  );
 }
 
 export function listenUnreadIds(callback: (ids: string[]) => void): () => void {
   const docRef = doc(db, 'unread', 'ids');
-  return onSnapshot(docRef, (snap) => {
-    if (snap.exists()) {
-      callback(snap.data().ids || []);
+  return onSnapshot(
+    docRef,
+    (snap) => {
+      if (snap.exists()) {
+        callback(snap.data().ids || []);
+      }
+    },
+    (error) => {
+      console.error('❌ Firestore: onSnapshot unreadIds ERROR', error);
     }
-  });
+  );
 }
 
 export async function saveCustomersToFirestore(customers: Customer[]): Promise<void> {
@@ -71,9 +83,15 @@ export async function loadCustomersFromFirestore(): Promise<Customer[]> {
 
 export function listenCustomers(callback: (customers: Customer[]) => void): () => void {
   const docRef = doc(db, 'data', 'customers');
-  return onSnapshot(docRef, (snap) => {
-    if (snap.exists()) {
-      callback(snap.data().customers || []);
+  return onSnapshot(
+    docRef,
+    (snap) => {
+      if (snap.exists()) {
+        callback(snap.data().customers || []);
+      }
+    },
+    (error) => {
+      console.error('❌ Firestore: onSnapshot customers ERROR', error);
     }
-  });
+  );
 }

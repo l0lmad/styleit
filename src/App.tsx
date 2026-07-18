@@ -90,6 +90,20 @@ export default function App() {
     return unsub;
   }, []);
 
+  // Fallback: poll Firestore every 15s in case onSnapshot fails silently
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadAllProducts().then((remote) => {
+        if (!remote) return;
+        const localTs = useStore.getState().productsUpdatedAt;
+        if (remote.updatedAt > localTs) {
+          useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
+        }
+      }).catch(() => {});
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Listen for new orders from Firestore (cross-device)
   useEffect(() => {
     const unsubOrders = listenOrders((remoteOrders) => {
