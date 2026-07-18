@@ -2121,20 +2121,22 @@ export default function AdminPage() {
                           className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
                           <Plus className="w-4 h-4" /> إضافة رابط صورة
                         </button>
-                        <label className="flex items-center gap-2 px-4 py-2 bg-pink-50 text-pink-600 rounded-xl text-sm font-cairo hover:bg-pink-100 transition-all cursor-pointer">
+                        <label className="relative flex items-center gap-2 px-4 py-2 bg-pink-50 text-pink-600 rounded-xl text-sm font-cairo hover:bg-pink-100 transition-all cursor-pointer overflow-hidden">
                           <ImageIcon className="w-4 h-4" /> رفع صورة من الجهاز
-                          <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                            const files = Array.from(e.target.files || []);
-                            files.forEach(file => {
-                              const reader = new FileReader();
-                              reader.onload = ev => {
-                                const dataUrl = ev.target?.result as string;
-                                setProductForm(f => ({ ...f, images: [...f.images.filter(Boolean), dataUrl] }));
-                              };
-                              reader.readAsDataURL(file);
-                            });
-                            e.target.value = '';
-                          }} />
+                          <input type="file" accept="image/*" multiple
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                            onChange={e => {
+                              const files = Array.from(e.target.files || []);
+                              files.forEach(file => {
+                                const reader = new FileReader();
+                                reader.onload = ev => {
+                                  const dataUrl = ev.target?.result as string;
+                                  setProductForm(f => ({ ...f, images: [...f.images.filter(Boolean), dataUrl] }));
+                                };
+                                reader.readAsDataURL(file);
+                              });
+                              e.target.value = '';
+                            }} />
                         </label>
                       </div>
                     </div>
@@ -2168,20 +2170,16 @@ export default function AdminPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="space-y-2">
-                      <label className="flex items-center justify-center w-full h-14 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-all">
+                    <div className="space-y-3">
+                      <div className="flex gap-3 items-center">
                         <input type="color" value={newColor || '#000000'} onChange={e => { setNewColor(e.target.value); if (!newColorName) setNewColorName(COLOR_NAMES[e.target.value] || ''); }}
-                          className="sr-only" />
-                        <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg border-2 border-gray-200 shadow-sm" style={{ backgroundColor: newColor || '#000000' }} />
-                          <span className="text-sm font-cairo text-gray-600">اضغط لاختيار لون</span>
+                          className="w-16 h-16 rounded-xl border-2 border-gray-200 cursor-pointer p-1" />
+                        <div className="flex-1">
+                          <input type="text" value={newColor} onChange={e => setNewColor(e.target.value)}
+                            placeholder="#000000" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" dir="ltr" />
+                          <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)}
+                            placeholder="اسم اللون" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 mt-2" />
                         </div>
-                      </label>
-                      <div className="flex gap-2">
-                        <input type="text" value={newColor} onChange={e => setNewColor(e.target.value)}
-                          placeholder="#000000" className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
-                        <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)}
-                          placeholder="اسم اللون" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
                         <button type="button" onClick={() => {
                           if (newColor && !productForm.colors.includes(newColor)) {
                             const newLabels = { ...productForm.colorLabels };
@@ -2191,7 +2189,7 @@ export default function AdminPage() {
                             setNewColorName('');
                           }
                         }}
-                          className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-cairo hover:bg-pink-600 transition-all flex items-center gap-1">
+                          className="px-5 py-4 bg-pink-500 text-white rounded-xl text-sm font-cairo font-bold hover:bg-pink-600 transition-all flex items-center gap-1 h-fit">
                           <Plus className="w-4 h-4" /> إضافة
                         </button>
                       </div>
