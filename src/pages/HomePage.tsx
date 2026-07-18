@@ -254,39 +254,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Sale Banner */}
-      {siteSettings.showSaleBanner && (
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full overflow-hidden">
-        <motion.div
-          whileInView={{ opacity: 1, scale: 1 }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          viewport={{ once: true }}
-          className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
-          style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
-        >
-          {siteSettings.showSaleWatermark && (
-            <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              style={{ opacity: 0.1 }}
-            />
-          )}
-          <div className="relative">
-            <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
-              <Tag className="w-4 h-4" /> {siteSettings.saleBannerBadge}
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black font-cairo mb-3">{siteSettings.saleBannerTitle}</h2>
-            <p className="text-white/80 font-cairo mb-6">{siteSettings.saleBannerSubtitle.replace('{coupon}', siteSettings.saleBannerCoupon)}</p>
-            <button
-              onClick={() => setActivePage('shop')}
-              className="bg-white px-8 py-3 rounded-xl font-bold font-cairo hover:shadow-lg transition-all"
-              style={{ color: siteSettings.primaryColor }}
-            >
-              {siteSettings.saleBannerBtnText}
-            </button>
-          </div>
-        </motion.div>
-      </section>
-      )}
-
       {/* New Arrivals */}
       {siteSettings.showNewArrivals && newArrivals.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
@@ -356,6 +323,39 @@ export default function HomePage() {
           <p className="text-center text-gray-400 font-cairo py-10">لا توجد منتجات متاحة</p>
         )}
       </section>
+
+      {/* Sale Banner */}
+      {siteSettings.showSaleBanner && (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full overflow-hidden">
+        <motion.div
+          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          viewport={{ once: true }}
+          className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
+          style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
+        >
+          {siteSettings.showSaleWatermark && (
+            <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+              style={{ opacity: 0.1 }}
+            />
+          )}
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full text-sm font-cairo mb-4">
+              <Tag className="w-4 h-4" /> {siteSettings.saleBannerBadge}
+            </span>
+            <h2 className="text-3xl md:text-4xl font-black font-cairo mb-3">{siteSettings.saleBannerTitle}</h2>
+            <p className="text-white/80 font-cairo mb-6">{siteSettings.saleBannerSubtitle.replace('{coupon}', siteSettings.saleBannerCoupon)}</p>
+            <button
+              onClick={() => setActivePage('shop')}
+              className="bg-white px-8 py-3 rounded-xl font-bold font-cairo hover:shadow-lg transition-all"
+              style={{ color: siteSettings.primaryColor }}
+            >
+              {siteSettings.saleBannerBtnText}
+            </button>
+          </div>
+        </motion.div>
+      </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
