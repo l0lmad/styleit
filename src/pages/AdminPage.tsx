@@ -99,9 +99,9 @@ export default function AdminPage() {
   const handleUpdateProduct = (product: Product) => { markUnsaved(); updateProduct(product); };
   const handleDeleteProduct = (id: string) => { markUnsaved(); deleteProduct(id); };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     updateSiteSettings(stagedSettings);
-    saveAllToFirestore();
+    await saveAllToFirestore();
     showNotification('تم حفظ التغييرات ونشرها على جميع الأجهزة ✓', 'success');
     hasUnsavedRef.current = false;
   };

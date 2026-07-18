@@ -4,6 +4,15 @@ import { saveSettings } from '../lib/settingsService';
 import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestore, updateOrderStatusInFirestore, saveCustomersToFirestore } from '../lib/ordersService';
 import { saveAllProducts } from '../lib/productsService';
 
+async function syncProducts(products: Product[], showError?: (msg: string) => void) {
+  try {
+    await saveAllProducts(products);
+  } catch (err) {
+    console.error('Firestore sync failed:', err);
+    showError?.('فشل في المزامنة مع السحابة! التغييرات محفوظة محلياً فقط');
+  }
+}
+
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات' | 'عطور' | 'مستحضرات تجميل';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | string;
 
@@ -521,27 +530,32 @@ export const useStore = create<StoreState>()(
       addProduct: (product) => {
         const ts = Date.now();
         set(state => ({ products: [...state.products, product], productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
+        syncProducts(useStore.getState().products, useStore.getState().showNotification);
       },
 
       updateProduct: (product) => {
         const ts = Date.now();
         set(state => ({ products: state.products.map(p => p.id === product.id ? product : p), productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
+        syncProducts(useStore.getState().products, useStore.getState().showNotification);
       },
 
       deleteProduct: (id) => {
         const ts = Date.now();
         set(state => ({ products: state.products.filter(p => p.id !== id), productsUpdatedAt: ts }));
-        saveAllProducts(useStore.getState().products);
+        syncProducts(useStore.getState().products, useStore.getState().showNotification);
       },
 
-      saveAllToFirestore: () => {
+      saveAllToFirestore: async () => {
         const state = useStore.getState();
         const ts = Date.now();
         useStore.setState({ productsUpdatedAt: ts });
-        saveAllProducts(state.products);
-        saveSettings(state.siteSettings);
+        await syncProducts(state.products, state.showNotification);
+        try {
+          await saveSettings(state.siteSettings);
+        } catch (err) {
+          console.error('Settings sync failed:', err);
+          state.showNotification?.('فشل في حفظ الإعدادات على السحابة');
+        }
       },
 
       addReview: (productId, review) =>
@@ -657,7 +671,7 @@ export const useStore = create<StoreState>()(
         const prods = useStore.getState().products;
         const ts = Date.now();
         useStore.setState({ productsUpdatedAt: ts });
-        saveAllProducts(prods);
+        syncProducts(prods, useStore.getState().showNotification);
         return id;
       },
 
