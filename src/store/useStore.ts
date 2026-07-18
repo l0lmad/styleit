@@ -5,7 +5,7 @@ import { saveOrderToFirestore, saveUnreadIdsToFirestore, deleteOrderFromFirestor
 import { saveAllProducts } from '../lib/productsService';
 
 export type Category = 'رجالي' | 'حريمي' | 'أطفال' | 'رياضي' | 'اكسسوارات' | 'عطور' | 'مستحضرات تجميل';
-export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | string;
 
 export interface Product {
   id: string;

@@ -14,6 +14,7 @@ type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'ga
 
 const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات', 'عطور', 'مستحضرات تجميل'] as const;
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
+const AGE_SIZES = Array.from({ length: 14 }, (_, i) => `${i + 1} سنة`);
 
 const STATUS_LABELS: Record<Order['status'], string> = {
   pending: 'في الانتظار',
@@ -2059,6 +2060,24 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-gray-700 font-cairo block mb-2">مقاسات بالأعمار (أطفال)</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {AGE_SIZES.map(age => (
+                        <button key={age} type="button"
+                          onClick={() => setProductForm(f => ({
+                            ...f,
+                            sizes: f.sizes.includes(age) ? f.sizes.filter(s => s !== age) : [...f.sizes, age]
+                          }))}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold font-cairo border-2 transition-all ${
+                            productForm.sizes.includes(age) ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                          }`}
+                        >
+                          {age}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
                     <label className="text-sm font-medium text-gray-700 font-cairo block mb-2">صور المنتج *</label>
                     <div className="space-y-2">
                       {productForm.images.map((img, idx) => (
@@ -2081,7 +2100,10 @@ export default function AdminPage() {
                               <ArrowDown className="w-3 h-3" />
                             </button>
                           </div>
-                          <input value={img} onChange={e => {
+                          {img.startsWith('data:') ? (
+                            <img src={img} alt="" className="w-12 h-12 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
+                          ) : null}
+                          <input value={img.startsWith('data:') ? '' : img} onChange={e => {
                             const imgs = [...productForm.images];
                             imgs[idx] = e.target.value;
                             setProductForm(f => ({ ...f, images: imgs }));
@@ -2094,10 +2116,27 @@ export default function AdminPage() {
                           )}
                         </div>
                       ))}
-                      <button type="button" onClick={() => setProductForm(f => ({ ...f, images: [...f.images, ''] }))}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
-                        <Plus className="w-4 h-4" /> إضافة صورة أخرى
-                      </button>
+                      <div className="flex gap-2 flex-wrap">
+                        <button type="button" onClick={() => setProductForm(f => ({ ...f, images: [...f.images, ''] }))}
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-cairo hover:bg-gray-100 transition-all">
+                          <Plus className="w-4 h-4" /> إضافة رابط صورة
+                        </button>
+                        <label className="flex items-center gap-2 px-4 py-2 bg-pink-50 text-pink-600 rounded-xl text-sm font-cairo hover:bg-pink-100 transition-all cursor-pointer">
+                          <ImageIcon className="w-4 h-4" /> رفع صورة من الجهاز
+                          <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                            const files = Array.from(e.target.files || []);
+                            files.forEach(file => {
+                              const reader = new FileReader();
+                              reader.onload = ev => {
+                                const dataUrl = ev.target?.result as string;
+                                setProductForm(f => ({ ...f, images: [...f.images.filter(Boolean), dataUrl] }));
+                              };
+                              reader.readAsDataURL(file);
+                            });
+                            e.target.value = '';
+                          }} />
+                        </label>
+                      </div>
                     </div>
                     {/* Image Preview */}
                     <div className="flex gap-2 mt-3 flex-wrap">
@@ -2129,25 +2168,33 @@ export default function AdminPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-2">
-                      <input type="color" value={newColor || '#000000'} onChange={e => { setNewColor(e.target.value); if (!newColorName) setNewColorName(COLOR_NAMES[e.target.value] || ''); }}
-                        className="w-10 h-10 p-0.5 border border-gray-200 rounded-lg cursor-pointer" />
-                      <input type="text" value={newColor} onChange={e => setNewColor(e.target.value)}
-                        placeholder="#000000" className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
-                      <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)}
-                        placeholder="اسم اللون" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                      <button type="button" onClick={() => {
-                        if (newColor && !productForm.colors.includes(newColor)) {
-                          const newLabels = { ...productForm.colorLabels };
-                          if (newColorName) newLabels[newColor] = newColorName;
-                          setProductForm(f => ({ ...f, colors: [...f.colors, newColor], colorLabels: newLabels }));
-                          setNewColor('');
-                          setNewColorName('');
-                        }
-                      }}
-                        className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-cairo hover:bg-pink-600 transition-all flex items-center gap-1">
-                        <Plus className="w-4 h-4" /> إضافة
-                      </button>
+                    <div className="space-y-2">
+                      <label className="flex items-center justify-center w-full h-14 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-all">
+                        <input type="color" value={newColor || '#000000'} onChange={e => { setNewColor(e.target.value); if (!newColorName) setNewColorName(COLOR_NAMES[e.target.value] || ''); }}
+                          className="sr-only" />
+                        <div className="flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-lg border-2 border-gray-200 shadow-sm" style={{ backgroundColor: newColor || '#000000' }} />
+                          <span className="text-sm font-cairo text-gray-600">اضغط لاختيار لون</span>
+                        </div>
+                      </label>
+                      <div className="flex gap-2">
+                        <input type="text" value={newColor} onChange={e => setNewColor(e.target.value)}
+                          placeholder="#000000" className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 font-mono" />
+                        <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)}
+                          placeholder="اسم اللون" className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
+                        <button type="button" onClick={() => {
+                          if (newColor && !productForm.colors.includes(newColor)) {
+                            const newLabels = { ...productForm.colorLabels };
+                            if (newColorName) newLabels[newColor] = newColorName;
+                            setProductForm(f => ({ ...f, colors: [...f.colors, newColor], colorLabels: newLabels }));
+                            setNewColor('');
+                            setNewColorName('');
+                          }
+                        }}
+                          className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-cairo hover:bg-pink-600 transition-all flex items-center gap-1">
+                          <Plus className="w-4 h-4" /> إضافة
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div>

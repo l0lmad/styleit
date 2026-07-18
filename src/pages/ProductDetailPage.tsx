@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, ShoppingCart, Plus, Minus, Share2, ChevronLeft, ChevronRight
+  Heart, ShoppingCart, Plus, Minus, Share2, ChevronLeft, ChevronRight, X, Link, MessageCircle
 } from 'lucide-react';
 import { useStore, Size, getColorLabel } from '../store/useStore';
 
@@ -16,6 +16,8 @@ export default function ProductDetailPage({ productId }: Props) {
   const [quantity, setQuantity] = useState(1);
   const [imgIndex, setImgIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'desc'>('desc');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -216,7 +218,7 @@ export default function ProductDetailPage({ productId }: Props) {
               >
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-white' : ''}`} />
               </button>
-              <button className="w-14 h-14 rounded-2xl border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 transition-all">
+              <button onClick={() => setShowShareModal(true)} className="w-14 h-14 rounded-2xl border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-all">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
@@ -232,6 +234,79 @@ export default function ProductDetailPage({ productId }: Props) {
         </div>
 
       </div>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (() => {
+          const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+          const shareText = `${product.name} - ${product.price.toLocaleString()} جنيه`;
+          return (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setShowShareModal(false)} className="fixed inset-0 bg-black/50 z-50" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm bg-white rounded-t-3xl md:rounded-3xl z-50 shadow-2xl p-6"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-lg font-black text-gray-900 font-cairo">مشاركة المنتج</h3>
+                  <button onClick={() => setShowShareModal(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-green-50 transition-all"
+                  >
+                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-cairo font-bold text-gray-900">واتساب</span>
+                  </a>
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-all"
+                  >
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      f
+                    </div>
+                    <span className="font-cairo font-bold text-gray-900">فيسبوك</span>
+                  </a>
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-sky-50 transition-all"
+                  >
+                    <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      𝕏
+                    </div>
+                    <span className="font-cairo font-bold text-gray-900">تويتر</span>
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareUrl);
+                      setCopied(true);
+                      showNotification('تم نسخ الرابط ✓');
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all w-full"
+                  >
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <Link className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <span className="font-cairo font-bold text-gray-900">{copied ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }
