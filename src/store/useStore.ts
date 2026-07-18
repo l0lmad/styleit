@@ -121,6 +121,7 @@ export interface SiteSettings {
   saleBannerBtnText: string;
   saleBannerIcon: string;
   saleBannerColor: string;
+  saleBannerColor2: string;
   instapayAccount: string;
   vodafoneAccount: string;
   whatsappNumber: string;
@@ -481,6 +482,7 @@ export const useStore = create<StoreState>()(
         saleBannerBtnText: 'تسوق الآن',
         saleBannerIcon: '🏷️',
         saleBannerColor: '#f97316',
+        saleBannerColor2: '#ec4899',
         instapayAccount: 'instapay@warawear.com',
         instapayName: 'Style It',
         vodafoneAccount: '01000000000',
@@ -809,6 +811,7 @@ export const useStore = create<StoreState>()(
             saleBannerBtnText: persisted.siteSettings?.saleBannerBtnText || 'تسوق الآن',
             saleBannerIcon: persisted.siteSettings?.saleBannerIcon || '🏷️',
             saleBannerColor: persisted.siteSettings?.saleBannerColor || '#f97316',
+            saleBannerColor2: persisted.siteSettings?.saleBannerColor2 || '#ec4899',
           };
         }
         if (persisted.users) {

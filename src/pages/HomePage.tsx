@@ -332,7 +332,7 @@ export default function HomePage() {
           initial={{ opacity: 0, scale: 0.95 }}
           viewport={{ once: true }}
           className="rounded-3xl p-8 md:p-12 text-white text-center relative overflow-hidden"
-          style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.primaryColor})` }}
+          style={{ background: `linear-gradient(to right, ${siteSettings.saleBannerColor}, ${siteSettings.saleBannerColor2})` }}
         >
           {siteSettings.showSaleWatermark && (
             <img src={logoSrcFinal} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none"
