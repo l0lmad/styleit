@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Tag, Check, X as XIcon } from 'lucide-react';
 import { useStore, getColorLabel, getProductImages, getStock } from '../store/useStore';
+import ProductImage from './ProductImage';
 
 export default function Cart() {
   const {
@@ -82,10 +83,10 @@ export default function Cart() {
                       transition={{ delay: idx * 0.05 }}
                       className="flex gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
                     >
-                      <img
+                      <ProductImage
                         src={getProductImages(item.product, item.color)[0] || item.product.images[0]}
                         alt={item.product.name}
-                        className="w-16 h-20 object-cover rounded-lg flex-shrink-0"
+                        wrapperClassName="w-16 h-20 rounded-lg flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 text-sm font-cairo truncate">{item.product.name}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore, Product, getColorLabel, getTotalStock } from '../store/useStore';
+import ProductImage from './ProductImage';
 
 interface Props {
   product: Product;
@@ -40,11 +41,10 @@ export default function ProductCard({ product }: Props) {
     >
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-100 aspect-[3/4]">
-        <img
+        <ProductImage
           src={product.images[imageIndex] || product.images[0]}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          onClick={e => { e.stopPropagation(); useStore.getState().setActivePage(`product-${product.id}`); }}
         />
         {/* Image navigation */}
         {product.images.length > 1 && (

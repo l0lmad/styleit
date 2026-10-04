@@ -4,6 +4,7 @@ import { Package, Clock, Truck, CheckCircle, XCircle, ShoppingBag, X, Search, Un
 import { useStore, Order, getColorLabel } from '../store/useStore';
 import { ReactNode } from 'react';
 import { loadAllOrdersFromFirestore } from '../lib/ordersService';
+import ProductImage from '../components/ProductImage';
 
 const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; icon: ReactNode; bg: string }> = {
   pending: { label: 'في الانتظار', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200', icon: <Clock className="w-4 h-4 text-yellow-500" /> },
@@ -151,7 +152,7 @@ export default function OrdersPage() {
                       <div className="flex gap-3 overflow-x-auto pb-2">
                         {order.items.map(item => (
                           <div key={`${item.product.id}-${item.size}-${item.color}`} className="flex-shrink-0 flex items-center gap-2 bg-gray-50 rounded-xl p-2 pr-3">
-                            <img src={item.product.images[0]} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg" />
+                            <ProductImage src={item.product.images[0]} alt={item.product.name} wrapperClassName="w-10 h-10 rounded-lg" />
                             <div>
                               <p className="text-xs font-semibold text-gray-900 font-cairo line-clamp-1 max-w-[100px]">{item.product.name}</p>
                               <p className="text-xs text-gray-400 font-cairo flex items-center gap-1">
@@ -224,7 +225,7 @@ export default function OrdersPage() {
                     <div className="space-y-3">
                       {order.items.map(item => (
                         <div key={`${item.product.id}-${item.size}-${item.color}`} className="flex items-center gap-3 bg-white rounded-xl p-3 border border-gray-100">
-                          <img src={item.product.images[0]} alt={item.product.name} className="w-14 h-14 object-cover rounded-xl flex-shrink-0" />
+                          <ProductImage src={item.product.images[0]} alt={item.product.name} wrapperClassName="w-14 h-14 rounded-xl flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-gray-900 font-cairo text-sm">{item.product.name}</p>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">

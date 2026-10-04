@@ -4,6 +4,7 @@ import {
   Heart, ShoppingCart, Plus, Minus, Share2, ChevronLeft, ChevronRight, X, Link, MessageCircle
 } from 'lucide-react';
 import { useStore, Size, getColorLabel, getAvailableSizes, getAvailableColors, getStock, getProductImages } from '../store/useStore';
+import ProductImage from '../components/ProductImage';
 
 interface Props { productId: string; }
 
@@ -71,7 +72,7 @@ export default function ProductDetailPage({ productId }: Props) {
               animate={{ opacity: 1 }}
               className="relative aspect-square bg-gray-100 rounded-3xl overflow-hidden"
             >
-              <img src={displayImages[imgIndex] || displayImages[0] || product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+              <ProductImage src={displayImages[imgIndex] || displayImages[0] || product.images[0]} alt={product.name} className="w-full h-full object-cover" />
               {discount > 0 && (
                 <span className="absolute top-4 right-4 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-xl font-cairo">
                   -{discount}%
@@ -102,7 +103,7 @@ export default function ProductDetailPage({ productId }: Props) {
                     onClick={() => setImgIndex(i)}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === imgIndex ? 'border-pink-500' : 'border-transparent'}`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <ProductImage src={img} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

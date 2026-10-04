@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, Grid, List, X, ChevronDown } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { getTotalStock } from '../store/useStore';
+import { getTotalStock, collectSizes } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 
 const CATEGORIES: { value: string; label: string }[] = [
@@ -16,8 +16,6 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'مستحضرات تجميل', label: 'مستحضرات تجميل 💄' },
 ];
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
 export default function ShopPage() {
   const { products, selectedCategory, setSelectedCategory, searchQuery } = useStore();
   const [priceRange, setPriceRange] = useState([0, 2000]);
@@ -27,6 +25,18 @@ export default function ShopPage() {
   const [viewGrid, setViewGrid] = useState(true);
   const [onSaleOnly, setOnSaleOnly] = useState(false);
   const [newOnly, setNewOnly] = useState(false);
+
+  const availableSizes = useMemo(() => {
+    const inStock = products.filter(p => getTotalStock(p) > 0);
+    const scoped = selectedCategory === 'الكل' ? inStock : inStock.filter(p => p.category === selectedCategory);
+    return collectSizes(scoped);
+  }, [products, selectedCategory]);
+
+  const visibleSizes = useMemo(() => {
+    const known = new Set(availableSizes);
+    const stillSelected = selectedSizes.filter(s => !known.has(s));
+    return [...availableSizes, ...stillSelected];
+  }, [availableSizes, selectedSizes]);
 
   const filtered = useMemo(() => {
     let list = [...products];
@@ -172,21 +182,25 @@ export default function ShopPage() {
                   {/* Sizes */}
                   <div>
                     <h4 className="text-sm font-semibold text-gray-700 font-cairo mb-3">المقاسات</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZES.map(size => (
-                        <button
-                          key={size}
-                          onClick={() => toggleSize(size)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold font-cairo border transition-all ${
-                            selectedSizes.includes(size)
-                              ? 'bg-pink-500 text-white border-pink-500'
-                              : 'bg-white text-gray-600 border-gray-200 hover:border-pink-300'
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
+                    {visibleSizes.length === 0 ? (
+                      <p className="text-xs text-gray-400 font-cairo">مفيش مقاسات متاحة حالياً</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto pl-1">
+                        {visibleSizes.map(size => (
+                          <button
+                            key={size}
+                            onClick={() => toggleSize(size)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold font-cairo border transition-all whitespace-nowrap ${
+                              selectedSizes.includes(size)
+                                ? 'bg-pink-500 text-white border-pink-500'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-pink-300'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick Filters */}

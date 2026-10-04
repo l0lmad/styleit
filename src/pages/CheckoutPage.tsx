@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { getProductImages } from '../store/useStore';
+import ProductImage from '../components/ProductImage';
 
 export default function CheckoutPage() {
   const { cart, currentUser, placeOrder, clearCart, setActivePage, showNotification, siteSettings, appliedCoupon } = useStore();
@@ -312,7 +313,7 @@ export default function CheckoutPage() {
               <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
                 {cart.map(item => (
                   <div key={`${item.product.id}-${item.size}-${item.color}`} className="flex gap-3">
-                    <img src={getProductImages(item.product, item.color)[0] || item.product.images[0]} alt={item.product.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                    <ProductImage src={getProductImages(item.product, item.color)[0] || item.product.images[0]} alt={item.product.name} wrapperClassName="w-12 h-12 rounded-lg flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-900 font-cairo line-clamp-1">{item.product.name}</p>
                       <p className="text-xs text-gray-400 font-cairo">{item.size} × {item.quantity}</p>

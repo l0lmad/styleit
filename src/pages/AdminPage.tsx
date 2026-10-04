@@ -8,8 +8,9 @@ import {
   Bell, Image as ImageIcon, ArrowUp, ArrowDown, RefreshCw, Save, Download, Edit3,
   RotateCcw, XCircle, Undo2, Truck, Printer, Eye, EyeOff
 } from 'lucide-react';
-import { useStore, Product, Order, COLOR_NAMES, getTotalStock } from '../store/useStore';
+import { useStore, Product, Order, COLOR_NAMES, getTotalStock, STORAGE_KEY } from '../store/useStore';
 import { saveCustomersToFirestore } from '../lib/ordersService';
+import ProductImage from '../components/ProductImage';
 
 
 type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings' | 'returns';
@@ -551,7 +552,7 @@ export default function AdminPage() {
                       <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <img src={p.images[0]} alt={p.name} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
+                            <ProductImage src={p.images[0]} alt={p.name} wrapperClassName="w-10 h-10 rounded-lg flex-shrink-0" />
                             <p className="font-semibold text-sm text-gray-900 font-cairo line-clamp-1 max-w-[150px]">{p.name}</p>
                           </div>
                         </td>
@@ -609,7 +610,7 @@ export default function AdminPage() {
                 </button>
                 <button onClick={() => {
                   try {
-                    const stored = JSON.parse(localStorage.getItem('wara-wear-storage') || '{}');
+                    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
                     const newOrders = stored?.state?.orders;
                     const newUnread = stored?.state?.unreadOrderIds;
                     if (newOrders) useStore.setState({ orders: newOrders });
@@ -713,7 +714,7 @@ export default function AdminPage() {
                   <div className="flex gap-3 overflow-x-auto">
                     {order.items.map(item => (
                       <div key={`${item.product.id}-${item.size}`} className="flex-shrink-0 flex items-center gap-2 bg-gray-50 rounded-xl p-2">
-                        <img src={item.product.images[0]} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg" />
+                        <ProductImage src={item.product.images[0]} alt={item.product.name} wrapperClassName="w-10 h-10 rounded-lg" />
                         <div>
                           <p className="text-xs font-semibold font-cairo text-gray-900 line-clamp-1 max-w-[100px]">{item.product.name}</p>
                           <p className="text-xs text-gray-400 font-cairo flex items-center gap-1">
@@ -1211,7 +1212,7 @@ export default function AdminPage() {
                           <tr key={p.id} className="border-b border-gray-50 text-sm font-cairo">
                             <td className="py-3 flex items-center gap-2">
                               <span className="w-6 h-6 bg-pink-50 text-pink-600 rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
-                              <img src={p.images[0]} alt={p.name} className="w-8 h-8 object-cover rounded-lg" />
+                              <ProductImage src={p.images[0]} alt={p.name} wrapperClassName="w-8 h-8 rounded-lg" />
                               <span className="text-gray-900 font-medium">{p.name}</span>
                             </td>
                             <td className="py-3 text-gray-500">{p.category}</td>
@@ -1366,11 +1367,10 @@ export default function AdminPage() {
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {products.flatMap(p => p.images.map(img => ({ img, productName: p.name, productId: p.id }))).map((item, idx) => (
                   <div key={`${item.productId}-${idx}`} className="group relative">
-                    <img
+                    <ProductImage
                       src={item.img}
                       alt={item.productName}
                       className="w-full aspect-square object-cover rounded-xl border border-gray-200"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                     <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-white text-[10px] font-cairo text-center px-1 leading-tight">{item.productName}</span>
@@ -2514,9 +2514,8 @@ export default function AdminPage() {
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {productForm.images.filter(Boolean).map((img, idx) => (
                         <div key={idx} className="relative">
-                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-800 text-white text-[9px] rounded-full flex items-center justify-center font-bold">{idx + 1}</span>
-                          <img src={img} alt="" className="w-14 h-14 object-cover rounded-lg border border-gray-200"
-                            onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-800 text-white text-[9px] rounded-full flex items-center justify-center font-bold z-10">{idx + 1}</span>
+                          <ProductImage src={img} alt="" className="w-14 h-14 object-cover rounded-lg border border-gray-200" />
                         </div>
                       ))}
                     </div>
@@ -2552,7 +2551,7 @@ export default function AdminPage() {
                                       isSelected ? 'border-pink-500 shadow-md' : 'border-gray-200 opacity-50 hover:opacity-80'
                                     }`}
                                   >
-                                    <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+                                    <ProductImage src={img} alt="" className="w-full h-full object-cover" />
                                     {isSelected && <span className="absolute bottom-0 left-0 right-0 bg-pink-500 text-white text-[8px] text-center font-bold py-0.5">✓</span>}
                                   </button>
                                 );
@@ -2711,7 +2710,7 @@ export default function AdminPage() {
                       <div className="space-y-3">
                         {order.items.map(item => (
                           <div key={`${item.product.id}-${item.size}-${item.color}`} className="flex items-center gap-3 bg-white rounded-xl p-3 border border-gray-100">
-                            <img src={item.product.images[0]} alt={item.product.name} className="w-14 h-14 object-cover rounded-xl flex-shrink-0" />
+                            <ProductImage src={item.product.images[0]} alt={item.product.name} wrapperClassName="w-14 h-14 rounded-xl flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-gray-900 font-cairo text-sm">{item.product.name}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { MessageCircle } from 'lucide-react';
 import { useStore } from './store/useStore';
+import { sanitizeProductImages, STORAGE_KEY } from './store/useStore';
 import type { Customer } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds, loadCustomersFromFirestore, listenCustomers } from './lib/ordersService';
@@ -74,7 +76,7 @@ export default function App() {
       if (!remote) return;
       const localTs = useStore.getState().productsUpdatedAt;
       if (remote.updatedAt > localTs) {
-        useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
+        useStore.setState({ products: sanitizeProductImages(remote.products), productsUpdatedAt: remote.updatedAt });
       }
     });
   }, []);
@@ -84,7 +86,7 @@ export default function App() {
     const unsub = listenProducts((remote) => {
       const localTs = useStore.getState().productsUpdatedAt;
       if (remote.updatedAt > localTs) {
-        useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
+        useStore.setState({ products: sanitizeProductImages(remote.products), productsUpdatedAt: remote.updatedAt });
       }
     });
     return unsub;
@@ -97,7 +99,7 @@ export default function App() {
         if (!remote) return;
         const localTs = useStore.getState().productsUpdatedAt;
         if (remote.updatedAt > localTs) {
-          useStore.setState({ products: remote.products, productsUpdatedAt: remote.updatedAt });
+          useStore.setState({ products: sanitizeProductImages(remote.products), productsUpdatedAt: remote.updatedAt });
         }
       }).catch(() => {});
     }, 15000);
@@ -135,7 +137,7 @@ export default function App() {
   // Cross-tab sync: listen for localStorage changes from other tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'wara-wear-storage' && e.newValue) {
+      if (e.key === STORAGE_KEY && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           const newOrders = parsed?.state?.orders;
@@ -230,65 +232,72 @@ function AdminNavbar() {
 }
 
 function ContactPage() {
-  const { showNotification, siteSettings } = useStore();
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSent(true);
-    showNotification('تم إرسال رسالتك بنجاح! سنرد عليك قريباً 📩');
-    setForm({ name: '', email: '', message: '' });
-  };
+  const { siteSettings } = useStore();
+  const whatsappNumber = (siteSettings.whatsappNumber || '').replace(/^\+|^00/, '');
+  const contactCards = [
+    { emoji: '💬', title: 'واتساب', value: siteSettings.whatsappNumber || '01000000000', sub: 'متاح يومياً - رد فوري', href: whatsappNumber ? `https://wa.me/${whatsappNumber}` : undefined },
+    { emoji: '📞', title: 'اتصل بنا', value: siteSettings.footerPhone || '01000000000', sub: 'السبت - الخميس, 9ص - 9م', href: `tel:${siteSettings.footerPhone || ''}` },
+    { emoji: '📍', title: 'موقعنا', value: siteSettings.footerAddress || 'القاهرة، مصر', sub: 'شارع التحرير، وسط البلد' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-16" dir="rtl">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-black text-gray-900 font-cairo">تواصل معنا</h1>
           <p className="text-gray-500 font-cairo mt-2">نحن هنا لمساعدتك في أي وقت</p>
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            {[
-              { emoji: '📞', title: 'اتصل بنا', value: '01000000000', sub: 'السبت - الخميس, 9ص - 9م' },
-              { emoji: '✉️', title: 'راسلنا', value: 'info@warawear.com', sub: 'رد خلال 24 ساعة' },
-              { emoji: '📍', title: 'موقعنا', value: 'القاهرة، مصر', sub: 'شارع التحرير، وسط البلد' },
-              { emoji: '💬', title: 'واتساب', value: siteSettings.whatsappNumber || '01000000000', sub: 'متاح يومياً' },
-            ].map(c => (
-              <div key={c.title} className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100">
-                <span className="text-3xl">{c.emoji}</span>
-                <div>
-                  <p className="font-bold text-gray-900 font-cairo">{c.title}</p>
-                  <p className="text-pink-600 font-cairo text-sm font-medium">{c.value}</p>
-                  <p className="text-gray-400 font-cairo text-xs">{c.sub}</p>
+
+        <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center shadow-sm">
+          <span className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-50 text-4xl mb-5">💬</span>
+          <h2 className="text-2xl font-black text-gray-900 font-cairo mb-2">راسلنا على واتساب</h2>
+          <p className="text-gray-500 font-cairo mb-8 max-w-md mx-auto">
+            اضغط الزر بالأسفل وسيتم فتح محادثة واتساب مباشرة معنا. أسرع طريقة للرد على استفساراتك ومتابعة طلبك.
+          </p>
+          {whatsappNumber ? (
+            <a
+              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('مرحباً، عايز أستفسر عن منتجاتكم')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 px-10 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black font-cairo text-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              <MessageCircle className="w-6 h-6" />
+              تواصل معنا الآن
+            </a>
+          ) : (
+            <p className="text-sm text-red-500 font-cairo">لم يتم إضافة رقم واتساب بعد</p>
+          )}
+          <p className="text-xs text-gray-400 font-cairo mt-4" dir="ltr">{siteSettings.whatsappNumber}</p>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-4 mt-8">
+          {contactCards.map(c => {
+            const inner = (
+              <>
+                <span className="text-2xl flex-shrink-0">{c.emoji}</span>
+                <div className="text-right">
+                  <p className="font-bold text-gray-900 font-cairo text-sm">{c.title}</p>
+                  <p className="text-pink-600 font-cairo text-sm font-medium" dir="ltr">{c.value}</p>
+                  <p className="text-gray-400 font-cairo text-[11px]">{c.sub}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="font-black text-gray-900 font-cairo mb-4">أرسل لنا رسالة</h2>
-            {sent ? (
-              <div className="text-center py-8">
-                <span className="text-5xl">📩</span>
-                <p className="mt-4 font-bold text-gray-900 font-cairo">تم إرسال رسالتك!</p>
-                <p className="text-gray-500 font-cairo text-sm mt-1">سنرد عليك في أقرب وقت</p>
-                <button onClick={() => setSent(false)} className="mt-4 text-pink-500 font-cairo text-sm hover:text-pink-600">إرسال رسالة أخرى</button>
-              </div>
+              </>
+            );
+            return c.href ? (
+              <a
+                key={c.title}
+                href={c.href}
+                target={c.href.startsWith('http') ? '_blank' : undefined}
+                rel={c.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-100 hover:border-pink-200 transition-all"
+              >
+                {inner}
+              </a>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="بريدك الإلكتروني" required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300" />
-                <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="رسالتك..." rows={4} required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none" />
-                <button type="submit" className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-bold font-cairo hover:shadow-lg transition-all">
-                  إرسال الرسالة
-                </button>
-              </form>
-            )}
-          </div>
+              <div key={c.title} className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-100">
+                {inner}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

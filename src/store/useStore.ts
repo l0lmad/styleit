@@ -73,6 +73,55 @@ export function getColorLabel(color: string, product?: Product): string {
   return COLOR_NAMES[color] || color;
 }
 
+const LETTER_SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', '4XL', '5XL'];
+
+function getSizeRank(size: string): { group: number; value: number; label: string } {
+  const raw = String(size).trim();
+  const upper = raw.toUpperCase();
+  const letterIdx = LETTER_SIZE_ORDER.indexOf(upper);
+  if (letterIdx !== -1) return { group: 0, value: letterIdx, label: upper };
+  const numberMatch = raw.match(/\d+(?:\.\d+)?/);
+  if (numberMatch) return { group: 1, value: parseFloat(numberMatch[0]), label: raw };
+  return { group: 2, value: 0, label: raw };
+}
+
+export function sortSizes(sizes: string[]): string[] {
+  const unique = Array.from(new Set(sizes.map(s => String(s).trim()).filter(Boolean)));
+  return unique.sort((a, b) => {
+    const ra = getSizeRank(a);
+    const rb = getSizeRank(b);
+    if (ra.group !== rb.group) return ra.group - rb.group;
+    if (ra.value !== rb.value) return ra.value - rb.value;
+    return ra.label.localeCompare(rb.label);
+  });
+}
+
+export function collectSizes(products: Product[]): string[] {
+  return sortSizes(products.flatMap(p => p.sizes ?? []));
+}
+
+const DEAD_IMAGE_HOSTS = ['cdn.phototourl.com', 'phototourl.com'];
+
+export function isDeadImageUrl(url?: string): boolean {
+  if (!url) return true;
+  return DEAD_IMAGE_HOSTS.some(host => url.includes(host));
+}
+
+export function sanitizeProductImages(products: Product[]): Product[] {
+  return products.map(p => {
+    const images = (p.images ?? []).filter(img => !isDeadImageUrl(img));
+    const colorImages = p.colorImages
+      ? Object.fromEntries(
+          Object.entries(p.colorImages).map(([color, imgs]) => [
+            color,
+            (imgs ?? []).filter(img => !isDeadImageUrl(img)),
+          ])
+        )
+      : p.colorImages;
+    return { ...p, images, colorImages };
+  });
+}
+
 export interface Review {
   id: string;
   userId: string;
@@ -458,12 +507,29 @@ const defaultUsers: User[] = [
   },
 ];
 
+export const STORAGE_KEY = 'styleit-storage';
+const LEGACY_STORAGE_KEYS = ['wara-wear-storage'];
+
+function migrateLegacyStorage() {
+  if (typeof localStorage === 'undefined') return;
+  if (localStorage.getItem(STORAGE_KEY)) return;
+  for (const legacyKey of LEGACY_STORAGE_KEYS) {
+    const legacyValue = localStorage.getItem(legacyKey);
+    if (legacyValue) {
+      localStorage.setItem(STORAGE_KEY, legacyValue);
+      break;
+    }
+  }
+}
+
+migrateLegacyStorage();
+
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
       currentUser: null,
       users: defaultUsers,
-      products: [],
+      products: sampleProducts,
       cart: [],
       appliedCoupon: null,
       orders: [],
@@ -489,7 +555,7 @@ export const useStore = create<StoreState>()(
           { title: 'دفع آمن', desc: 'طرق دفع متعددة ومشّفرة', emoji: '🔒' },
           { title: 'دعم 24 ساعة', desc: 'فريق خدمة العملاء جاهز', emoji: '💬' },
         ],
-        footerEmail: 'info@warawear.com',
+        footerEmail: 'info@styleit.com',
         footerPhone: '+201234567890',
         footerAddress: 'القاهرة، مصر',
         footerBrand: 'Style It',
@@ -526,7 +592,7 @@ export const useStore = create<StoreState>()(
         saleBannerIcon: '🏷️',
         saleBannerColor: '#f97316',
         saleBannerColor2: '#ec4899',
-        instapayAccount: 'instapay@warawear.com',
+        instapayAccount: 'instapay@styleit.com',
         instapayName: 'Style It',
         vodafoneAccount: '01000000000',
         vodafoneName: 'Style It',
@@ -539,7 +605,7 @@ export const useStore = create<StoreState>()(
         coupons: [
           { code: 'SAVE10', type: 'percentage', value: 10 },
         ],
-        orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
+orderTrackingMessage: 'شكراً لطلبك من Style It! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
         shippingCost: 50,
         freeShippingThreshold: 500,
         cancelNotifyTemplate: '💔 إحنا آسفين يا {customerName} ❤️\n\nإحنا استلمنا إلغاء طلبك #{orderId}، وبنعتذرلك بجد لو منتجاتنا معجبتكيش.\n\nوعد مننا إحنا شغالين على تحسين الجودة باستمرار عشان نستاهل ثقتك، ومنورنا في أي وقت 🌹',
@@ -879,7 +945,7 @@ export const useStore = create<StoreState>()(
       },
     }),
     {
-      name: 'wara-wear-storage',
+name: STORAGE_KEY,
       version: 7,
       migrate: (persisted: any) => {
         if (persisted.siteSettings?.shippingCost === undefined) {
@@ -898,7 +964,7 @@ export const useStore = create<StoreState>()(
         if (!persisted.siteSettings?.orderTrackingMessage) {
           persisted.siteSettings = {
             ...persisted.siteSettings,
-        orderTrackingMessage: 'شكراً لطلبك من وارا وير! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
+        orderTrackingMessage: 'شكراً لطلبك من Style It! 🎉 طلبك قيد التجهيز وسيتم شحنه قريباً. يمكنك تتبع حالة طلبك من هنا.',
           };
         }
         if (!persisted.siteSettings?.cancelNotifyTemplate) {
@@ -946,7 +1012,7 @@ export const useStore = create<StoreState>()(
         }
         if (persisted.users) {
           persisted.users = persisted.users.map((u: any) => {
-            if (u.email === 'admin@warawear.com') { u.email = 'admin@admin.com'; u.password = '123456'; }
+            if (u.email === 'admin@warawear.com' || u.email === 'admin@wara-wear.com') { u.email = 'admin@admin.com'; u.password = '123456'; }
             if (!u.role) u.role = 'admin';
             return u;
           });
@@ -969,6 +1035,9 @@ export const useStore = create<StoreState>()(
             if (!p.colorImages) p.colorImages = {};
             return p;
           });
+          persisted.products = sanitizeProductImages(persisted.products);
+        } else {
+          persisted.products = sampleProducts;
         }
         return persisted as any;
       },
