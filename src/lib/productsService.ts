@@ -1,6 +1,6 @@
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product } from '../store/useStore';
+import { normalizeProducts, type Product } from '../store/useStore';
 
 export interface ProductsData {
   products: Product[];
@@ -9,7 +9,7 @@ export interface ProductsData {
 
 export async function saveAllProducts(products: Product[]): Promise<void> {
   const docRef = doc(db, 'data', 'products');
-  await setDoc(docRef, { products, updatedAt: Date.now() });
+  await setDoc(docRef, { products: normalizeProducts(products), updatedAt: Date.now() });
   console.log('✅ Firestore: products saved', products.length, 'products');
 }
 
@@ -22,7 +22,7 @@ export function listenProducts(callback: (data: ProductsData) => void): () => vo
         const data = snap.data() as ProductsData;
         if (data.products) {
           console.log('🔄 Firestore: products update received, ts:', data.updatedAt);
-          callback(data);
+          callback({ products: normalizeProducts(data.products), updatedAt: data.updatedAt });
         }
       } else {
         console.log('ℹ️ Firestore: products doc does not exist yet');
@@ -40,7 +40,8 @@ export async function loadAllProducts(): Promise<ProductsData | null> {
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       console.log('✅ Firestore: products loaded');
-      return snap.data() as ProductsData;
+      const data = snap.data() as ProductsData;
+      return { products: normalizeProducts(data.products), updatedAt: data.updatedAt };
     }
     console.log('ℹ️ Firestore: no products doc yet');
     return null;

@@ -122,6 +122,56 @@ export function sanitizeProductImages(products: Product[]): Product[] {
   });
 }
 
+/**
+ * Guarantees every field a renderer relies on actually exists.
+ *
+ * Products saved from an older build, imported from a spreadsheet, or hand
+ * edited in Firestore can be missing price, oldPrice, colors, sizes, unitsSold
+ * and so on. Any missing numeric field then blows up on `.toLocaleString()`
+ * and takes the whole React tree down with it, so normalise on the way in.
+ */
+export function normalizeProduct(input: unknown): Product {
+  const p = (input && typeof input === 'object' ? input : {}) as Partial<Product> & Record<string, unknown>;
+
+  const toNumber = (value: unknown, fallback = 0) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const images = sanitizeProductImages([{ ...p, images: (p.images ?? []) as string[] } as Product])[0].images;
+  const oldPrice = toNumber(p.oldPrice, 0);
+  const cost = toNumber(p.cost, 0);
+  const price = toNumber(p.price, 0);
+
+  return {
+    ...(p as object),
+    id: p.id || `prod-${Date.now()}`,
+    name: p.name || 'منتج',
+    description: p.description || '',
+    category: p.category || 'أخرى',
+    price,
+    oldPrice: oldPrice > 0 ? oldPrice : undefined,
+    cost: cost > 0 ? cost : Math.round(price * 0.6),
+    images,
+    colors: Array.isArray(p.colors) ? p.colors : [],
+    colorLabels: (p.colorLabels && typeof p.colorLabels === 'object') ? p.colorLabels : {},
+    colorImages: (p.colorImages && typeof p.colorImages === 'object') ? p.colorImages : {},
+    sizes: Array.isArray(p.sizes) ? p.sizes : [],
+    stock: (p.stock && typeof p.stock === 'object') ? p.stock : {},
+    rating: toNumber(p.rating, 0),
+    reviews: Array.isArray(p.reviews) ? p.reviews : [],
+    unitsSold: toNumber(p.unitsSold, 0),
+    featured: !!p.featured,
+    newArrival: !!p.newArrival,
+    createdAt: p.createdAt || new Date().toISOString(),
+  } as Product;
+}
+
+export function normalizeProducts(input: unknown): Product[] {
+  if (!Array.isArray(input)) return [];
+  return input.map(normalizeProduct);
+}
+
 export interface Review {
   id: string;
   userId: string;
@@ -946,7 +996,7 @@ orderTrackingMessage: 'شكراً لطلبك من Style It! 🎉 طلبك قيد
     }),
     {
 name: STORAGE_KEY,
-      version: 7,
+      version: 8,
       migrate: (persisted: any) => {
         if (persisted.siteSettings?.shippingCost === undefined) {
           persisted.siteSettings = {
@@ -1018,24 +1068,25 @@ name: STORAGE_KEY,
           });
         }
         if (persisted.products) {
-          persisted.products = persisted.products.map((p: any) => {
-            if (typeof p.stock === 'number') {
-              const newStock: Record<string, number> = {};
-              const total = p.stock;
-              const sizes = p.sizes || [];
-              const colors = p.colors || ['#000000'];
-              const perCombo = sizes.length > 0 && colors.length > 0 ? Math.ceil(total / (sizes.length * colors.length)) : 0;
-              for (const s of sizes) {
-                for (const c of colors) {
-                  newStock[`${s}|${c}`] = perCombo;
+          persisted.products = normalizeProducts(
+            persisted.products.map((p: any) => {
+              if (typeof p.stock === 'number') {
+                const newStock: Record<string, number> = {};
+                const total = p.stock;
+                const sizes = p.sizes || [];
+                const colors = p.colors || ['#000000'];
+                const perCombo = sizes.length > 0 && colors.length > 0 ? Math.ceil(total / (sizes.length * colors.length)) : 0;
+                for (const s of sizes) {
+                  for (const c of colors) {
+                    newStock[`${s}|${c}`] = perCombo;
+                  }
                 }
+                p.stock = newStock;
               }
-              p.stock = newStock;
-            }
-            if (!p.colorImages) p.colorImages = {};
-            return p;
-          });
-          persisted.products = sanitizeProductImages(persisted.products);
+              if (!p.colorImages) p.colorImages = {};
+              return p;
+            })
+          );
         } else {
           persisted.products = sampleProducts;
         }

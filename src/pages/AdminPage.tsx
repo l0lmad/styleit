@@ -2765,7 +2765,7 @@ export default function AdminPage() {
                               {p?.images?.[0] && <img src={p.images[0]} className="w-8 h-8 rounded-lg object-cover" />}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold font-cairo truncate">{item.product.name}</p>
-                                <p className="text-xs text-gray-400 font-cairo">{item.product.price.toLocaleString()} ج × {item.quantity}</p>
+                                <p className="text-xs text-gray-400 font-cairo">{(item.product?.price ?? 0).toLocaleString()} ج × {item.quantity}</p>
                               </div>
                               <p className="text-sm font-bold text-pink-600 font-cairo">{(item.product.price * item.quantity).toLocaleString()} ج</p>
                             </div>
