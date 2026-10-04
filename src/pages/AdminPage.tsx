@@ -10,10 +10,12 @@ import {
 } from 'lucide-react';
 import { useStore, Product, Order, COLOR_NAMES, getTotalStock, STORAGE_KEY } from '../store/useStore';
 import { saveCustomersToFirestore } from '../lib/ordersService';
+import { uploadProductImage } from '../lib/imageUploadService';
+import { whatsappLink } from '../lib/phone';
 import ProductImage from '../components/ProductImage';
 
 
-type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'gallery' | 'settings' | 'returns';
+type Section = 'dashboard' | 'products' | 'orders' | 'users' | 'analytics' | 'settings' | 'returns';
 
 const CATEGORIES = ['رجالي', 'حريمي', 'أطفال', 'رياضي', 'اكسسوارات', 'عطور', 'مستحضرات تجميل'] as const;
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
@@ -75,6 +77,8 @@ export default function AdminPage() {
   const [viewingCustomer, setViewingCustomer] = useState<{name: string; orders: string[]; phone?: string; email?: string; address?: string; city?: string; createdAt: string} | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<{phone: string; name: string; email: string; address: string; city: string} | null>(null);
   const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', address: '', city: '' });
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const hasUnsavedRef = useRef(false);
   useEffect(() => {
@@ -97,11 +101,6 @@ export default function AdminPage() {
   const updateStagedSettings = (settings: Partial<typeof siteSettings>) => {
     markUnsaved();
     setStagedSettings(prev => ({...prev, ...settings}));
-  };
-
-  const handleUpdateSettings = (settings: Partial<typeof siteSettings>) => {
-    markUnsaved();
-    updateSiteSettings(settings);
   };
 
   const handleAddProduct = (product: Product) => { markUnsaved(); addProduct(product); };
@@ -215,7 +214,6 @@ export default function AdminPage() {
     { key: 'returns', label: 'المرتجعات والإلغاءات', icon: RotateCcw },
     { key: 'users', label: 'العملاء', icon: Users },
     { key: 'analytics', label: 'التحليلات', icon: BarChart2 },
-    { key: 'gallery', label: 'معرض الصور', icon: ImageIcon },
     { key: 'settings', label: 'الإعدادات', icon: Settings },
   ];
 
@@ -688,7 +686,7 @@ export default function AdminPage() {
                         const paymentLabel = order.paymentMethod === 'cash' ? '💰 كاش عند الاستلام' : order.paymentMethod === 'instapay' ? '💜 InstaPay' : order.paymentMethod === 'vodafone' ? '🔴 فودافون كاش' : order.paymentMethod;
                         const msg = `🛍 *طلب جديد #${order.id}*\n━━━━━━━━━━━━━━━\n👤 *العميل:* ${order.userName}\n📞 *التليفون:* ${order.phone}\n📍 *العنوان:* ${order.address}\n📧 *الإيميل:* ${order.userEmail || '—'}\n💳 *الدفع:* ${paymentLabel}\n💰 *الإجمالي:* ${order.total.toLocaleString()} ج\n━━━━━━━━━━━━━━━\n*المنتجات:*\n${itemsList}\n━━━━━━━━━━━━━━━\n✅ شكراً لطلبك من Style It!`;
                         return (
-                          <a href={`https://wa.me/${siteSettings.whatsappNotificationNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer"
+                          <a href={whatsappLink(siteSettings.whatsappNotificationNumber, msg)} target="_blank" rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
                             className="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition-all" title="أرسل عبر واتساب">
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -714,7 +712,6 @@ export default function AdminPage() {
                   <div className="flex gap-3 overflow-x-auto">
                     {order.items.map(item => (
                       <div key={`${item.product.id}-${item.size}`} className="flex-shrink-0 flex items-center gap-2 bg-gray-50 rounded-xl p-2">
-                        <ProductImage src={item.product.images[0]} alt={item.product.name} wrapperClassName="w-10 h-10 rounded-lg" />
                         <div>
                           <p className="text-xs font-semibold font-cairo text-gray-900 line-clamp-1 max-w-[100px]">{item.product.name}</p>
                           <p className="text-xs text-gray-400 font-cairo flex items-center gap-1">
@@ -1272,118 +1269,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Gallery */}
-        {adminSection === 'gallery' && (
-          <div className="space-y-5">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <h1 className="text-2xl font-black text-gray-900 font-cairo">معرض الصور</h1>
-              <button
-                onClick={() => handleUpdateSettings({ heroImages: [...siteSettings.heroImages, ''] })}
-                className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-pink-600 transition-all shadow-lg shadow-pink-200"
-              >
-                <Plus className="w-4 h-4" />
-                إضافة صورة
-              </button>
-            </div>
-
-            {/* Hero Images */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-pink-500" /> صور الهيرو (الرئيسية)
-              </h2>
-              <p className="text-sm text-gray-500 font-cairo mb-4">هذه الصور تظهر في القسم الرئيسي (الهيرو) في الصفحة الرئيسية. يمكنك ترتيبها وإدارة عناوين URL الخاصة بها.</p>
-              <div className="space-y-3">
-                {siteSettings.heroImages.length === 0 && (
-                  <p className="text-center text-gray-400 font-cairo py-6">لا توجد صور. أضف صوراً جديدة باستخدام الزر أعلاه.</p>
-                )}
-                {siteSettings.heroImages.map((img, idx) => (
-                  <div key={idx} className="flex gap-2 items-start bg-gray-50 rounded-xl p-3">
-                    <div className="flex flex-col gap-1 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const imgs = [...siteSettings.heroImages];
-                          if (idx > 0) { [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]]; }
-                          handleUpdateSettings({ heroImages: imgs });
-                        }}
-                        disabled={idx === 0}
-                        className={`p-1 rounded-lg transition-all ${idx === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
-                      >
-                        <ArrowUp className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const imgs = [...siteSettings.heroImages];
-                          if (idx < imgs.length - 1) { [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]]; }
-                          handleUpdateSettings({ heroImages: imgs });
-                        }}
-                        disabled={idx === siteSettings.heroImages.length - 1}
-                        className={`p-1 rounded-lg transition-all ${idx === siteSettings.heroImages.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
-                      >
-                        <ArrowDown className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0 bg-white">
-                      {img ? (
-                        <img src={img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).classList.add('hidden'); }} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon className="w-6 h-6" /></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <input
-                        value={img}
-                        onChange={e => {
-                          const imgs = [...siteSettings.heroImages];
-                          imgs[idx] = e.target.value;
-                          handleUpdateSettings({ heroImages: imgs });
-                        }}
-                        placeholder="https://example.com/image.jpg"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-cairo focus:outline-none focus:ring-2 focus:ring-pink-300"
-                        dir="ltr"
-                      />
-                    </div>
-                    {siteSettings.heroImages.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateSettings({ heroImages: siteSettings.heroImages.filter((_, i) => i !== idx) })}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* All Product Images */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h2 className="font-black text-gray-900 font-cairo mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5 text-pink-500" /> صور المنتجات
-              </h2>
-              <p className="text-sm text-gray-500 font-cairo mb-4">جميع الصور المستخدمة في المنتجات. يمكنك إدارتها من قسم المنتجات.</p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {products.flatMap(p => p.images.map(img => ({ img, productName: p.name, productId: p.id }))).map((item, idx) => (
-                  <div key={`${item.productId}-${idx}`} className="group relative">
-                    <ProductImage
-                      src={item.img}
-                      alt={item.productName}
-                      className="w-full aspect-square object-cover rounded-xl border border-gray-200"
-                    />
-                    <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white text-[10px] font-cairo text-center px-1 leading-tight">{item.productName}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {products.flatMap(p => p.images).length === 0 && (
-                <p className="text-center text-gray-400 font-cairo py-6">لا توجد صور منتجات</p>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Settings */}
         {adminSection === 'settings' && (
@@ -1479,13 +1364,7 @@ export default function AdminPage() {
               </div>
               {/* Hero Images */}
               <div className="mt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-700 font-cairo">صور الهيرو</label>
-                  <button type="button" onClick={() => setAdminSection('gallery')}
-                    className="text-xs text-pink-500 font-cairo hover:text-pink-600 flex items-center gap-1">
-                    <ImageIcon className="w-3 h-3" /> إدارة متقدمة
-                  </button>
-                </div>
+                <label className="text-sm font-medium text-gray-700 font-cairo block mb-2">صور الهيرو</label>
                 {stagedSettings.heroImages.length === 0 ? (
                   <p className="text-sm text-gray-400 font-cairo mb-2">لا توجد صور</p>
                 ) : (
@@ -2493,22 +2372,46 @@ export default function AdminPage() {
                         </button>
                         <label className="relative flex items-center gap-2 px-4 py-2 bg-pink-50 text-pink-600 rounded-xl text-sm font-cairo hover:bg-pink-100 transition-all cursor-pointer overflow-hidden">
                           <ImageIcon className="w-4 h-4" /> رفع صورة من الجهاز
-                          <input type="file" accept="image/*" multiple
+                          <input type="file" accept="image/*" multiple disabled={uploadingImages}
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                            onChange={e => {
+                            onChange={async e => {
                               const files = Array.from(e.target.files || []);
-                              files.forEach(file => {
-                                const reader = new FileReader();
-                                reader.onload = ev => {
-                                  const dataUrl = ev.target?.result as string;
-                                  setProductForm(f => ({ ...f, images: [...f.images.filter(Boolean), dataUrl] }));
-                                };
-                                reader.readAsDataURL(file);
-                              });
                               e.target.value = '';
+                              if (files.length === 0) return;
+                              setUploadingImages(true);
+                              setUploadProgress(0);
+                              let uploaded = 0;
+                              try {
+                                for (const file of files) {
+                                  const url = await uploadProductImage(file, percent => setUploadProgress(percent));
+                                  setProductForm(f => ({ ...f, images: [...f.images.filter(Boolean), url] }));
+                                  uploaded++;
+                                }
+                                showNotification(uploaded > 1 ? `تم رفع ${uploaded} صور بنجاح ✓` : 'تم رفع الصورة بنجاح ✓');
+                              } catch (err) {
+                                console.error('Image upload failed:', err);
+                                showNotification(
+                                  `فشل رفع الصورة${uploaded > 0 ? ` (${uploaded} نجحوا)` : ''} — ${err instanceof Error ? err.message : 'حاول تاني'}`,
+                                  'error'
+                                );
+                              } finally {
+                                setUploadingImages(false);
+                                setUploadProgress(0);
+                              }
                             }} />
                         </label>
                       </div>
+                      {uploadingImages && (
+                        <div className="mt-2">
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-pink-500 transition-all duration-200"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-400 font-cairo mt-1">جارٍ رفع الصورة {uploadProgress}%</p>
+                        </div>
+                      )}
                     </div>
                     {/* Image Preview */}
                     <div className="flex gap-2 mt-3 flex-wrap">

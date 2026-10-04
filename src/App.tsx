@@ -6,6 +6,7 @@ import type { Customer } from './store/useStore';
 import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds, loadCustomersFromFirestore, listenCustomers } from './lib/ordersService';
 import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
+import { toWhatsAppNumber, whatsappLink } from './lib/phone';
 
 function mergeCustomers(local: Customer[], remote: Customer[]): Customer[] {
   const localPhones = new Set(local.map(c => c.phone));
@@ -233,7 +234,7 @@ function AdminNavbar() {
 
 function ContactPage() {
   const { siteSettings } = useStore();
-  const whatsappNumber = (siteSettings.whatsappNumber || '').replace(/^\+|^00/, '');
+  const whatsappNumber = toWhatsAppNumber(siteSettings.whatsappNumber);
   const contactCards = [
     { emoji: '💬', title: 'واتساب', value: siteSettings.whatsappNumber || '01000000000', sub: 'متاح يومياً - رد فوري', href: whatsappNumber ? `https://wa.me/${whatsappNumber}` : undefined },
     { emoji: '📞', title: 'اتصل بنا', value: siteSettings.footerPhone || '01000000000', sub: 'السبت - الخميس, 9ص - 9م', href: `tel:${siteSettings.footerPhone || ''}` },
@@ -256,7 +257,7 @@ function ContactPage() {
           </p>
           {whatsappNumber ? (
             <a
-              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('مرحباً، عايز أستفسر عن منتجاتكم')}`}
+              href={whatsappLink(whatsappNumber, 'مرحباً، عايز أستفسر عن منتجاتكم')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-3 px-10 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black font-cairo text-lg shadow-lg hover:shadow-xl transition-all"

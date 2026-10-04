@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Smartphone, Banknote, CheckCircle, Package, ArrowLeft } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { getProductImages } from '../store/useStore';
+import { whatsappLink } from '../lib/phone';
 import ProductImage from '../components/ProductImage';
 
 export default function CheckoutPage() {
@@ -266,7 +267,7 @@ export default function CheckoutPage() {
                     <p className="text-lg font-black text-purple-900 font-cairo text-center" dir="ltr">{siteSettings.instapayAccount}</p>
                     <p className="text-xs text-purple-500 font-cairo mt-1 text-center">حول المبلغ على الحساب أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
                     {siteSettings.whatsappNumber && (
-                      <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر InstaPay`)}`} target="_blank" rel="noopener noreferrer"
+                      <a href={whatsappLink(siteSettings.whatsappNumber, `طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر InstaPay`)} target="_blank" rel="noopener noreferrer"
                         className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all">
                         💬 أرسل إثبات الدفع عبر واتساب
                       </a>
@@ -280,7 +281,7 @@ export default function CheckoutPage() {
                     <p className="text-lg font-black text-red-900 font-cairo text-center" dir="ltr">{siteSettings.vodafoneAccount}</p>
                     <p className="text-xs text-red-500 font-cairo mt-1 text-center">حول المبلغ على الرقم أعلاه ثم أرسل إثبات الدفع عبر واتساب</p>
                     {siteSettings.whatsappNumber && (
-                      <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/^\+|^00/, '')}?text=${encodeURIComponent(`طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر فودافون كاش`)}`} target="_blank" rel="noopener noreferrer"
+                      <a href={whatsappLink(siteSettings.whatsappNumber, `طلب جديد - أريد تأكيد تحويل مبلغ ${total.toLocaleString()} جنيه عبر فودافون كاش`)} target="_blank" rel="noopener noreferrer"
                         className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 text-white rounded-xl font-bold font-cairo text-sm hover:bg-green-600 transition-all">
                         💬 أرسل إثبات الدفع عبر واتساب
                       </a>

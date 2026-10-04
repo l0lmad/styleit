@@ -4,6 +4,7 @@ import { Package, Clock, Truck, CheckCircle, XCircle, ShoppingBag, X, Search, Un
 import { useStore, Order, getColorLabel } from '../store/useStore';
 import { ReactNode } from 'react';
 import { loadAllOrdersFromFirestore } from '../lib/ordersService';
+import { toWhatsAppNumber, whatsappLink } from '../lib/phone';
 import ProductImage from '../components/ProductImage';
 
 const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; icon: ReactNode; bg: string }> = {
@@ -380,9 +381,9 @@ export default function OrdersPage() {
           siteSettings.cancelNotifyTemplate || '💔 إحنا آسفين يا {customerName} ❤️ لو منتجاتنا معجبتكيش، وعد مننا إحنا شغالين على تحسين الجودة.',
           { orderId: order.id, customerName: order.userName || 'صديقنا', total: order.total.toLocaleString() }
         );
-        const waNumber = (siteSettings.whatsappNumber || '').replace(/^\+|^00/, '');
+        const waNumber = toWhatsAppNumber(siteSettings.whatsappNumber);
         const waLink = waNumber
-          ? `https://wa.me/${waNumber}?text=${encodeURIComponent(`أهلاً Style It 👋، أنا ${order.userName || ''} — طلبي #${order.id} اتعمل له إلغاء وكنت محتاج أساعدكم.`)}`
+          ? whatsappLink(waNumber, `أهلاً Style It 👋، أنا ${order.userName || ''} — طلبي #${order.id} اتعمل له إلغاء وكنت محتاج أساعدكم.`)
           : null;
         return (
           <>
