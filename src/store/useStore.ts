@@ -172,6 +172,73 @@ export function normalizeProducts(input: unknown): Product[] {
   return input.map(normalizeProduct);
 }
 
+const ORDER_STATUSES: Order['status'][] = [
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'returned',
+];
+
+/**
+ * Same guarantee as normalizeProduct, for orders.
+ *
+ * Orders saved by an older build can lack total/subtotal/shipping, and their
+ * line items can carry a product snapshot without a price. The customer orders
+ * page renders every one of those with .toLocaleString(), so a single stale
+ * order used to blank the entire app.
+ */
+export function normalizeOrder(input: unknown): Order {
+  const o = (input && typeof input === 'object' ? input : {}) as Partial<Order> & Record<string, unknown>;
+
+  const toNumber = (value: unknown) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : undefined;
+  };
+
+  const items: CartItem[] = (Array.isArray(o.items) ? o.items : []).map((raw: any) => {
+    const product = normalizeProduct(raw?.product);
+    const quantity = Number(raw?.quantity);
+    return {
+      ...raw,
+      product,
+      quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      size: raw?.size || product.sizes?.[0] || 'M',
+      color: raw?.color || product.colors?.[0] || '#000000',
+    };
+  });
+
+  const subtotal = toNumber(o.subtotal);
+  const shipping = toNumber(o.shipping);
+  const couponDiscount = toNumber(o.couponDiscount);
+  const summedItems = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const total = toNumber(o.total) ?? Math.round(summedItems + (shipping ?? 0) - (couponDiscount ?? 0));
+
+  return {
+    ...(o as object),
+    id: o.id || `ord-${Date.now()}`,
+    userId: o.userId || '',
+    userName: o.userName || 'عميل',
+    userEmail: o.userEmail || '',
+    items,
+    total: Math.round(total),
+    status: ORDER_STATUSES.includes(o.status as Order['status']) ? (o.status as Order['status']) : 'pending',
+    address: o.address || '',
+    phone: o.phone || '',
+    createdAt: o.createdAt || new Date().toISOString(),
+    paymentMethod: o.paymentMethod || 'الدفع عند الاستلام',
+    subtotal: subtotal ?? Math.round(summedItems),
+    shipping,
+    couponDiscount,
+  } as Order;
+}
+
+export function normalizeOrders(input: unknown): Order[] {
+  if (!Array.isArray(input)) return [];
+  return input.map(normalizeOrder);
+}
+
 export interface Review {
   id: string;
   userId: string;
@@ -996,7 +1063,7 @@ orderTrackingMessage: 'شكراً لطلبك من Style It! 🎉 طلبك قيد
     }),
     {
 name: STORAGE_KEY,
-      version: 8,
+      version: 9,
       migrate: (persisted: any) => {
         if (persisted.siteSettings?.shippingCost === undefined) {
           persisted.siteSettings = {
@@ -1090,6 +1157,7 @@ name: STORAGE_KEY,
         } else {
           persisted.products = sampleProducts;
         }
+        persisted.orders = normalizeOrders(persisted.orders);
         return persisted as any;
       },
       partialize: (state) => ({

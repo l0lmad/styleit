@@ -144,7 +144,7 @@ export default function OrdersPage() {
                           {status.icon}
                           {status.label}
                         </div>
-                        <p className="font-black text-gray-900 font-cairo">{order.total.toLocaleString()} جنيه</p>
+                        <p className="font-black text-gray-900 font-cairo">{(order.total ?? 0).toLocaleString()} جنيه</p>
                       </div>
                     </div>
 
@@ -236,7 +236,7 @@ export default function OrdersPage() {
                               </span>
                               <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-cairo">× {item.quantity}</span>
                             </div>
-                            <p className="text-sm font-bold text-pink-600 font-cairo mt-1">{(item.product.price * item.quantity).toLocaleString()} جنيه</p>
+                            <p className="text-sm font-bold text-pink-600 font-cairo mt-1">{((item.product?.price ?? 0) * (item.quantity ?? 1)).toLocaleString()} جنيه</p>
                           </div>
                         </div>
                       ))}
@@ -247,7 +247,7 @@ export default function OrdersPage() {
                       {order.subtotal !== undefined && (
                         <div className="flex justify-between">
                           <span>المجموع الفرعي</span>
-                          <span className="font-bold text-gray-900">{order.subtotal.toLocaleString()} ج</span>
+                          <span className="font-bold text-gray-900">{(order.subtotal ?? 0).toLocaleString()} ج</span>
                         </div>
                       )}
                       {order.couponCode && (
@@ -268,7 +268,7 @@ export default function OrdersPage() {
                   )}
                   <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl p-4 text-center">
                     <p className="text-sm font-cairo opacity-80">الإجمالي</p>
-                    <p className="text-2xl font-black font-cairo">{order.total.toLocaleString()} جنيه</p>
+                    <p className="text-2xl font-black font-cairo">{(order.total ?? 0).toLocaleString()} جنيه</p>
                   </div>
                   {(order.cancelReason || order.returnReason) && (
                     <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
