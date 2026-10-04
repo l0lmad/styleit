@@ -40,7 +40,7 @@ export default function ProductCard({ product }: Props) {
       onClick={() => useStore.getState().setActivePage(`product-${product.id}`)}
     >
       {/* Image */}
-      <div className="relative overflow-hidden bg-gray-100 aspect-[3/4]">
+      <div className="relative overflow-hidden bg-gray-100 aspect-square">
         <ProductImage
           src={product.images[imageIndex] || product.images[0]}
           alt={product.name}

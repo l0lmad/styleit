@@ -86,7 +86,7 @@ export default function Cart() {
                       <ProductImage
                         src={getProductImages(item.product, item.color)[0] || item.product.images[0]}
                         alt={item.product.name}
-                        wrapperClassName="w-16 h-20 rounded-lg flex-shrink-0"
+                        wrapperClassName="w-14 h-16 rounded-lg"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 text-sm font-cairo truncate">{item.product.name}</p>

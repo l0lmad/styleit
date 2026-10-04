@@ -116,14 +116,14 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-3xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all relative max-w-full"
+                    className="rounded-3xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all relative max-w-full ring-1 ring-white/60 border border-white/30"
                     onClick={() => setActivePage(`product-${heroSlides[currentSlideIndex]?.productId}`)}
                   >
                     <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-64 sm:h-80 md:h-[28rem] object-cover max-w-full" />
                     {heroSlides[currentSlideIndex] && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
-                        <p className="text-white font-bold font-cairo text-xl md:text-2xl">{heroSlides[currentSlideIndex].productName}</p>
-                        <p className="text-white/80 font-cairo text-base md:text-lg mt-1">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-6">
+                        <p className="text-white font-bold font-cairo text-xl md:text-2xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">{heroSlides[currentSlideIndex].productName}</p>
+                        <p className="text-white/80 font-cairo text-base md:text-lg mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
                           {heroSlides[currentSlideIndex].productOldPrice && (
                             <span className="line-through text-white/50 ml-2">{heroSlides[currentSlideIndex].productOldPrice.toLocaleString()} ج</span>
                           )}
