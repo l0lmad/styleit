@@ -116,7 +116,7 @@ export default function HomePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-3xl md:rounded-[2rem] overflow-hidden shadow-2xl cursor-pointer ring-2 ring-white/30 hover:ring-white/50 transition-all relative max-w-full"
+                    className="rounded-3xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all relative max-w-full"
                     onClick={() => setActivePage(`product-${heroSlides[currentSlideIndex]?.productId}`)}
                   >
                     <img src={heroSlides[currentSlideIndex]?.url} alt="" className="w-full h-64 sm:h-80 md:h-[28rem] object-cover max-w-full" />
