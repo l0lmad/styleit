@@ -7,6 +7,7 @@ import { loadSettings, subscribeSettings } from './lib/settingsService';
 import { loadAllOrdersFromFirestore, loadUnreadIdsFromFirestore, listenOrders, listenUnreadIds, loadCustomersFromFirestore, listenCustomers } from './lib/ordersService';
 import { loadAllProducts, listenProducts, saveAllProducts } from './lib/productsService';
 import { toWhatsAppNumber, whatsappLink } from './lib/phone';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function mergeCustomers(local: Customer[], remote: Customer[]): Customer[] {
   const localPhones = new Set(local.map(c => c.phone));
@@ -166,7 +167,7 @@ export default function App() {
       case 'shop': return <ShopPage />;
       case 'checkout': return <CheckoutPage />;
       case 'orders': return <OrdersPage />;
-      case 'admin': return <AdminPage />;
+      case 'admin': return <ErrorBoundary label="Admin panel"><AdminPage /></ErrorBoundary>;
       case 'login': return <LoginPage />;
       case 'wishlist': return <WishlistPage />;
       case 'profile': return <ProfilePage />;

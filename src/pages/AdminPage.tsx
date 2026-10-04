@@ -94,7 +94,10 @@ export default function AdminPage() {
 
   const markUnsaved = () => { hasUnsavedRef.current = true; };
 
-  const [stagedSettings, setStagedSettings] = useState(siteSettings);
+  const [stagedSettings, setStagedSettings] = useState(() => ({
+    ...siteSettings,
+    heroImages: siteSettings?.heroImages || [],
+  }));
   useEffect(() => {
     if (!hasUnsavedRef.current) setStagedSettings(siteSettings);
   }, [siteSettings]);
